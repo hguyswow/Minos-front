@@ -1,0 +1,1028 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pandory>
+    <!-- General settings -->
+    <system>
+        <!-- Enable debug mode. Write logs to pandory.txt --> 
+        <setting name="debug" value="false"/>
+        
+        <!-- Pandory enables dipswitch changes. Set this to true to disable them. -->
+        <setting name="disableDipswitches" value="true"/>
+        
+        <!-- Define how visible scanlines are. From 0 to 1 -->
+        <setting name="scanlineOpacity" value="0.2"/>
+        
+        <!-- Use "jpinoRoyale" Scanlines -->
+        <setting name="useBetterScanlines" value="true"/>
+        
+        <!-- Enable attract mode by disabling credit insertion -->
+        <setting name="disableAutomaticCredits" value="true"/>
+        
+        <!-- Force disable HD filter, regardless of settings -->
+        <setting name="disableForcedQualityFilter" value="true"/>
+        
+        <!-- Enable/disable smoothing of pixels -->
+        <setting name="smoothPixels" value="false"/>
+        
+        <!-- Force smooth pixels on CGA screens. -->
+        <setting name="forceSmoothCGA" value="true" />
+        
+        <!-- "Fat Chun-Li"-Mode. Use this to disable aspect ratio
+             correction and instruct the emulator to fill your screen.
+             Can be useful for using 720p on a 4:3 screen, or if you
+             are just absolutely bonkers -->
+        <setting name="stretchDisplay" value="false" />
+        
+        <!-- Enable rotation settings, otherwise they are ignored -->
+        <setting name="allowRotation" value="false" />
+        
+        <!-- Enable background music in the menu -->
+        <setting name="menuMusic" value="true" />
+        
+        <!-- Turn off music after this many tracks -->
+        <setting name="musicSleepLimit" value="10" />
+        
+        <!-- Set the background music volume -->
+        <setting name="musicVolume" value="10" />
+        
+        <!-- Downsample Amiga audio to mono automatically if you
+             are using a CGA/JAMMA cab with only one audio channel. -->
+        <setting name="automaticAmigaMono" value="true" />
+    </system>
+    
+    
+    <!-- Enable extra cores, map them to folders on your SD/USB.
+         You can also change emulator-level settings here, or
+         override any general setting above for a specific core. 
+         Using keymap="...", you can also change the button layout for
+         a given emulator.
+         -->
+    <emulators>
+        <emulator suffix="A800" folder="atari800" core="atari800" keymap="atari800" />
+        <emulator suffix="A2600" folder="atari2600" core="stella2014" keymap="atari2600" />
+        <emulator suffix="AMIGA" folder="amiga" core="puae" videoDriver="drm" forceWidth="1060" forceHeight="660" />
+        <emulator suffix="AMIGA" folder="amiga1200" core="puae" videoDriver="drm" forceWidth="1060" forceHeight="660" extra="aga" />
+        <emulator suffix="ST" folder="atarist" core="hatari" keymap="atarist" />
+        <emulator suffix="PICO" folder="genesis" core="picodrive" />
+        <emulator suffix="GBA" folder="gba" core="mgba" keymap="gba" />
+        <emulator suffix="GBC" folder="gbc" core="gambatte" keymap="gameboy" />
+        <emulator suffix="GB" folder="gb" core="gambatte" keymap="gameboy" />
+        <emulator suffix="GBLINK" folder="gblink" core="tgbdual" keymap="gameboy" stretchDisplay="true" />
+        <emulator suffix="PCE" folder="pce" core="mednafen_pce_fast" keymap="pce" />
+        <emulator suffix="32X" folder="32x" core="picodrive" />
+        <emulator suffix="GENESIS" folder="genesis" core="picodrive"/>
+        <emulator suffix="Script" folder="scripts" core="shell"/>
+        <emulator suffix="Ports" folder="ports" core="custom"/>
+    </emulators>
+    
+    <!-- Rom-specific settings. You can also override any of the above,
+         or map a certain rom to a certain core, change rom widths and
+         heights, remap buttons, use completely different settings etc.
+         
+         keymap="neogeo"                      // set to neogeo button layout
+         core="pce"                           // play the rom in the pce emulator
+         customOptions="/path/to/options.cfg" // use specific retroarch options file
+         customCfg="/path/to/retroarch.cfg"   // use specific retroarch cfg file
+         forceWidth="1500"                    // stretch the 'virtual' viewport to 1500px
+         forceHeight="1000"                   // stretch the 'virtual' viewport to 1000px
+         speed="200"                          // accelerate supported cores (FBA) to given %
+         rotate="3"                           // rotate either 0, 90, 180 or 270 degrees
+         rotateMode="4:3"                     // (optional) improve scaling if you rotate a 4:3 game
+         
+         Note: Using customOptions and customCfg will disable any other
+         settings you may have defined.
+         
+         Note: forcing width/height scales the VIRTUAL viewport inside
+         of your available screen size. It is therefore possible
+         to set a width of 2000x1000, but still use a 384x224 screen.
+         
+         Note: not all cores enjoy being scaled and some attempt to
+         force aspect ratio. It is best to experiment with small pixel
+         increments to get your desired results.
+     -->
+    <roms>
+        <!-- Custom cores for ports -->
+        <rom name="QuakeSW.zip" core="tyrquake"/>
+        
+        <!-- Don't accelerate these roms -->
+        <rom name="sf2.zip" speed="100" />
+        <rom name="sf2ce.zip" speed="100" />
+        <rom name="sf2ceuabl.zip" speed="100" />
+        <rom name="sf2m2.zip" speed="100" />
+        <rom name="sf2m4.zip" speed="100" />
+        <rom name="sf2m5.zip" speed="100" />
+        <rom name="sf2m6.zip" speed="100" />
+        <rom name="sf2m7.zip" speed="100" />
+        <rom name="sf2mega.zip" speed="100" />
+        <rom name="sf2rb.zip" speed="100" />
+        <rom name="sf2rb2.zip" speed="100" />
+        <rom name="sf2red.zip" speed="100" />
+        <rom name="sf2t.zip" speed="100" />
+        <rom name="sf2tj.zip" speed="100" />
+        <rom name="sf2tlona.zip" speed="100" />
+        <rom name="sf2hf.zip" speed="100" />
+        <rom name="sf2hfj.zip" speed="100" />
+        <rom name="ssf2t.zip" speed="100" />
+        <rom name="ssf2xj.zip" speed="100" />
+        
+        <!-- Fix up Mortal Kombat games with MAME2003 core and remaps -->
+        <rom name="mk.zip" keymap="mamemk" core="mame2003" />
+        <rom name="mk2.zip" keymap="mamemk" core="mame2003" />
+        <rom name="mk3.zip" keymap="mamemk" core="mame2003" />
+        <rom name="umk3.zip" keymap="mamemk" core="mame2003" />
+        <rom name="mk2chal.zip" keymap="mamemk" core="mame2003" />
+        <rom name="mk2r14.zip" keymap="mamemk" core="mame2003" />
+        <rom name="mk2r21.zip" keymap="mamemk" core="mame2003" />
+        <rom name="mk2r32.zip" keymap="mamemk" core="mame2003" />
+        <rom name="mk2r42.zip" keymap="mamemk" core="mame2003" />
+        <rom name="mk2r91.zip" keymap="mamemk" core="mame2003" />
+        <rom name="mk3r10.zip" keymap="mamemk" core="mame2003" />
+        <rom name="mk3r20.zip" keymap="mamemk" core="mame2003" />
+        
+        <rom name="simpsons.zip" keymap="fbae" core="fba-external" />
+        <rom name="simpsons2p.zip" keymap="fbae" core="fba-external" />
+        <rom name="ssriders.zip" keymap="fbae" core="fba-external" />
+        <rom name="ssridersabd.zip" keymap="fbae" core="fba-external" />
+        <rom name="ssridersadd.zip" keymap="fbae" core="fba-external" />
+        <rom name="tmht.zip" keymap="fbae-switch-ab" core="fba-external" />
+        <rom name="tmnt2p.zip" keymap="fbae-switch-ab" core="fba-external" />
+        <rom name="tmht2p.zip" keymap="fbae-switch-ab" core="fba-external" />
+        <rom name="tmht22pe.zip" keymap="fbae" core="fbneo" />
+        <rom name="tmnt2.zip" keymap="fbae" core="fbneo" />
+        <rom name="xmen.zip" keymap="fbae-xmen"core="fba-external" />
+        <rom name="xmen2pa.zip" keymap="fbae-xmen" core="fba-external" />
+        
+        <!-- Assign switch-ab keymap for arcade roms -->
+        <rom name="kungfum.zip" keymap="switch-ab" />
+
+        <!-- Assign neogeo keymap to neogeo roms -->
+        <rom name="2020bb.zip" keymap="neogeo" />
+        <rom name="2020bba.zip" keymap="neogeo" />
+        <rom name="2020bbh.zip" keymap="neogeo" />
+        <rom name="3countb.zip" keymap="neogeo" />
+        <rom name="alpham2.zip" keymap="neogeo" />
+        <rom name="androdun.zip" keymap="neogeo" />
+        <rom name="aodk.zip" keymap="neogeo" />
+        <rom name="aof.zip" keymap="neogeo" />
+        <rom name="aof2.zip" keymap="neogeo" />
+        <rom name="aof2a.zip" keymap="neogeo" />
+        <rom name="aof3.zip" keymap="neogeo" />
+        <rom name="aof3k.zip" keymap="neogeo" />
+        <rom name="bakatono.zip" keymap="neogeo" />
+        <rom name="bangbead.zip" keymap="neogeo" />
+        <rom name="bjourney.zip" keymap="neogeo" />
+        <rom name="blazstar.zip" keymap="neogeo" />
+        <rom name="breakers.zip" keymap="neogeo" />
+        <rom name="breakrev.zip" keymap="neogeo" />
+        <rom name="bstars.zip" keymap="neogeo" />
+        <rom name="bstars2.zip" keymap="neogeo" />
+        <rom name="burningf.zip" keymap="neogeo" />
+        <rom name="burningfh.zip" keymap="neogeo" />
+        <rom name="crsword.zip" keymap="neogeo" />
+        <rom name="ct2k3sa.zip" keymap="neogeo" />
+        <rom name="ct2k3sp.zip" keymap="neogeo" />
+        <rom name="cthd2003.zip" keymap="neogeo" />
+        <rom name="ctomaday.zip" keymap="neogeo" />
+        <rom name="cyberlip.zip" keymap="neogeo" />
+        <rom name="diggerma.zip" keymap="neogeo" />
+        <rom name="doubledr.zip" keymap="neogeo" />
+        <rom name="eightman.zip" keymap="neogeo" />
+        <rom name="fatfursa.zip" keymap="neogeo" />
+        <rom name="fatfursp.zip" keymap="neogeo" />
+        <rom name="fatfury1.zip" keymap="neogeo" />
+        <rom name="fatfury2.zip" keymap="neogeo" />
+        <rom name="fatfury3.zip" keymap="neogeo" />
+        <rom name="fbfrenzy.zip" keymap="neogeo" />
+        <rom name="fightfev.zip" keymap="neogeo" />
+        <rom name="fightfeva.zip" keymap="neogeo" />
+        <rom name="flipshot.zip" keymap="neogeo" />
+        <rom name="fswords.zip" keymap="neogeo" />
+        <rom name="galaxyfg.zip" keymap="neogeo" />
+        <rom name="ganryu.zip" keymap="neogeo" />
+        <rom name="garou.zip" keymap="neogeo" />
+        <rom name="garoubl.zip" keymap="neogeo" />
+        <rom name="garouo.zip" keymap="neogeo" />
+        <rom name="garoup.zip" keymap="neogeo" />
+        <rom name="ghostlop.zip" keymap="neogeo" />
+        <rom name="goalx3.zip" keymap="neogeo" />
+        <rom name="gowcaizr.zip" keymap="neogeo" />
+        <rom name="gpilots.zip" keymap="neogeo" />
+        <rom name="gpilotsh.zip" keymap="neogeo" />
+        <rom name="gururin.zip" keymap="neogeo" />
+        <rom name="irrmaze.zip" keymap="neogeo" />
+        <rom name="janshin.zip" keymap="neogeo" />
+        <rom name="jockeygp.zip" keymap="neogeo" />
+        <rom name="joyjoy.zip" keymap="neogeo" />
+        <rom name="kabukikl.zip" keymap="neogeo" />
+        <rom name="karnovr.zip" keymap="neogeo" />
+        <rom name="kof10th.zip" keymap="neogeo" />
+        <rom name="kf10thep.zip" keymap="neogeo" />
+        <rom name="kof2002b.zip" keymap="neogeo" />
+        <rom name="kof2k4se.zip" keymap="neogeo" />
+        <rom name="kf2k2pa.zip" keymap="neogeo" />
+        <rom name="kf2k2mp.zip" keymap="neogeo" />
+        <rom name="kof02m2.zip" keymap="neogeo" />
+        <rom name="kf2k2mp2.zip" keymap="neogeo" />
+        <rom name="kf2k2pla.zip" keymap="neogeo" />
+        <rom name="kf2k2pls.zip" keymap="neogeo" />
+        <rom name="kf2k3bl.zip" keymap="neogeo" />
+        <rom name="kf2k3bla.zip" keymap="neogeo" />
+        <rom name="kf2k3pcb.zip" keymap="neogeo" />
+        <rom name="kf2k3pl.zip" keymap="neogeo" />
+        <rom name="kf2k3upl.zip" keymap="neogeo" />
+        <rom name="kf2k5uni.zip" keymap="neogeo" />
+        <rom name="kizuna.zip" keymap="neogeo" />
+        <rom name="mslug.zip" keymap="neogeo" rotate="3" rotateMode="4:3" />
+        <rom name="mslughk.zip" keymap="neogeo" rotate="3" rotateMode="4:3" />
+        <rom name="mslug2.zip" keymap="neogeo" rotate="3" rotateMode="4:3" />
+        <rom name="mslug2hk.zip" keymap="neogeo" />
+        <rom name="mslugx.zip" keymap="neogeo" />
+        <rom name="mslugxhk.zip" keymap="neogeo" />
+        <rom name="mslug3nd.zip" keymap="neogeo" />
+        <rom name="mslug3hk.zip" keymap="neogeo" />
+        <rom name="mslug4nd.zip" keymap="neogeo" />
+        <rom name="mslug5nd.zip" keymap="neogeo" />
+        <rom name="mslug6nd.zip" keymap="neogeo" />
+        <rom name="shocktro.zip" keymap="neogeo" />
+        <rom name="shocktr2.zip" keymap="neogeo" />
+        <rom name="kof94.zip" keymap="neogeo" />
+        <rom name="kof95.zip" keymap="neogeo" />
+        <rom name="kof95eh.zip" keymap="neogeo" />
+        <rom name="kof96.zip" keymap="neogeo" />
+        <rom name="kof96eh.zip" keymap="neogeo" />
+        <rom name="kof96prc.zip" keymap="neogeo" />
+        <rom name="kof97.zip" keymap="neogeo" />
+        <rom name="kof97aesp.zip" keymap="neogeo" />
+        <rom name="kof97any.zip" keymap="neogeo" />
+        <rom name="kof97ball.zip" keymap="neogeo" />
+        <rom name="kof97bd.zip" keymap="neogeo" />
+        <rom name="kof97bh1.zip" keymap="neogeo" />
+        <rom name="kof97bo.zip" keymap="neogeo" />
+        <rom name="kof97bos.zip" keymap="neogeo" />
+        <rom name="kof97bs.zip" keymap="neogeo" />
+        <rom name="kof97chris.zip" keymap="neogeo" />
+        <rom name="kof97com.zip" keymap="neogeo" />
+        <rom name="kof97evo1.zip" keymap="neogeo" />
+        <rom name="kof97fang.zip" keymap="neogeo" />
+        <rom name="kof97four.zip" keymap="neogeo" />
+        <rom name="kof97gai.zip" keymap="neogeo" />
+        <rom name="kof97i.zip" keymap="neogeo" />
+        <rom name="kof97jh.zip" keymap="neogeo" />
+        <rom name="kof97jz.zip" keymap="neogeo" />
+        <rom name="kof97pls.zip" keymap="neogeo" />
+        <rom name="kof97prc.zip" keymap="neogeo" />
+        <rom name="kof97ps.zip" keymap="neogeo" />
+        <rom name="kof97psx.zip" keymap="neogeo" />
+        <rom name="kof97qxzz.zip" keymap="neogeo" />
+        <rom name="kof97th.zip" keymap="neogeo" />
+        <rom name="kof97tk.zip" keymap="neogeo" />
+        <rom name="kof97ts.zip" keymap="neogeo" />
+        <rom name="kof97ts2.zip" keymap="neogeo" />
+        <rom name="kof97w.zip" keymap="neogeo" />
+        <rom name="kof97yao.zip" keymap="neogeo" />
+        <rom name="kof97yk.zip" keymap="neogeo" />
+        <rom name="kof97zjzz.zip" keymap="neogeo" />
+        <rom name="kof97zx.zip" keymap="neogeo" />
+        <rom name="kof98.zip" keymap="neogeo" />
+        <rom name="kof98baoz.zip" keymap="neogeo" />
+        <rom name="kof98chris" keymap="neogeo" />
+        <rom name="kof98cn.zip" keymap="neogeo" />
+        <rom name="kof98com.zip" keymap="neogeo" />
+        <rom name="kof98cosmic.zip" keymap="neogeo" />
+        <rom name="kof98evo.zip" keymap="neogeo" />
+        <rom name="kof98f8.zip" keymap="neogeo" />
+        <rom name="kof98fh.zip" keymap="neogeo" />
+        <rom name="kof98gh.zip" keymap="neogeo" />
+        <rom name="kof98lkr.zip" keymap="neogeo" />
+        <rom name="kof98lv.zip" keymap="neogeo" />
+        <rom name="kof98m.zip" keymap="neogeo" />
+        <rom name="kof98n.zip" keymap="neogeo" />
+        <rom name="kof98nc.zip" keymap="neogeo" />
+        <rom name="kof98pc.zip" keymap="neogeo" />
+        <rom name="kof98pw.zip" keymap="neogeo" />
+        <rom name="kof98r.zip" keymap="neogeo" />
+        <rom name="kof98ul.zip" keymap="neogeo" />
+        <rom name="kof98ur.zip" keymap="neogeo" />
+        <rom name="kof99.zip" keymap="neogeo" />
+        <rom name="kof99com.zip" keymap="neogeo" />
+        <rom name="kof99combo.zip" keymap="neogeo" />
+        <rom name="kof99dc.zip" keymap="neogeo" />
+        <rom name="kof99evo.zip" keymap="neogeo" />
+        <rom name="kof99h.zip" keymap="neogeo" />
+        <rom name="kof99jh.zip" keymap="neogeo" />
+        <rom name="kof99p.zip" keymap="neogeo" />
+        <rom name="kof99pf.zip" keymap="neogeo" />
+        <rom name="kof99plus.zip" keymap="neogeo" />
+        <rom name="kof99r.zip" keymap="neogeo" />
+        <rom name="kof99remix.zip" keymap="neogeo" />
+        <rom name="kof99rp.zip" keymap="neogeo" />
+        <rom name="kof99sr.zip" keymap="neogeo" />
+        <rom name="kof99uplus.zip" keymap="neogeo" />
+        <rom name="kof978s.zip" keymap="neogeo" />
+        <rom name="kof2000.zip" keymap="neogeo" />
+        <rom name="kof2000n.zip" keymap="neogeo" />
+        <rom name="kof2000p.zip" keymap="neogeo" />
+        <rom name="kof2001.zip" keymap="neogeo" />
+        <rom name="kof2001psx.zip" keymap="neogeo" />
+        <rom name="kof2001st.zip" keymap="neogeo" />
+        <rom name="kof2001x.zip" keymap="neogeo" />
+        <rom name="kof2003.zip" keymap="neogeo" />
+        <rom name="kof2003psx.zip" keymap="neogeo" />
+        <rom name="kof01.zip" keymap="neogeo" />
+        <rom name="kof02.zip" keymap="neogeo" />
+        <rom name="kog.zip" keymap="neogeo" />
+        <rom name="kog.zip" keymap="neogeo" />
+        <rom name="kotm.zip" keymap="neogeo" />
+        <rom name="kotm2.zip" keymap="neogeo" />
+        <rom name="kotmh.zip" keymap="neogeo" />
+        <rom name="lans2k4d.zip" keymap="neogeo" />
+        <rom name="lans2004.zip" keymap="neogeo" />
+        <rom name="lastblad.zip" keymap="neogeo" />
+        <rom name="lastbladh.zip" keymap="neogeo" />
+        <rom name="lastbld2.zip" keymap="neogeo" />
+        <rom name="lastsold.zip" keymap="neogeo" />
+        <rom name="lbowling.zip" keymap="neogeo" />
+        <rom name="legendos.zip" keymap="neogeo" />
+        <rom name="list.txt    " keymap="neogeo" />
+        <rom name="lresort.zip" keymap="neogeo" />
+        <rom name="magdrop2.zip" keymap="neogeo" />
+        <rom name="magdrop3.zip" keymap="neogeo" />
+        <rom name="maglord.zip" keymap="neogeo" />
+        <rom name="maglordh.zip" keymap="neogeo" />
+        <rom name="mahretsu.zip" keymap="neogeo" />
+        <rom name="marukodq.zip" keymap="neogeo" />
+        <rom name="matrim.zip" keymap="neogeo" />
+        <rom name="matrimbl.zip" keymap="neogeo" />
+        <rom name="miexchng.zip" keymap="neogeo" />
+        <rom name="minasan.zip" keymap="neogeo" />
+        <rom name="mosyougi.zip" keymap="neogeo" />
+        <rom name="ms4plus.zip" keymap="neogeo" />
+        <rom name="ms5pcb.zip" keymap="neogeo" />
+        <rom name="ms5plus.zip" keymap="neogeo" />
+        <rom name="mutnat.zip" keymap="neogeo" />
+        <rom name="nam1975.zip" keymap="neogeo" />
+        <rom name="ncombat.zip" keymap="neogeo" />
+        <rom name="ncombath.zip" keymap="neogeo" />
+        <rom name="ncommand.zip" keymap="neogeo" />
+        <rom name="neobombe.zip" keymap="neogeo" />
+        <rom name="neocup98.zip" keymap="neogeo" />
+        <rom name="neodrift.zip" keymap="neogeo" />
+        <rom name="neogeo.zip" keymap="neogeo" />
+        <rom name="neomrdo.zip" keymap="neogeo" />
+        <rom name="ninjamas.zip" keymap="neogeo" />
+        <rom name="nitd.zip" keymap="neogeo" />
+        <rom name="nitdbl.zip" keymap="neogeo" />
+        <rom name="overtop.zip" keymap="neogeo" />
+        <rom name="panicbom.zip" keymap="neogeo" />
+        <rom name="pbobbl2n.zip" keymap="neogeo" />
+        <rom name="pbobblen.zip" keymap="neogeo" />
+        <rom name="pbobblena.zip" keymap="neogeo" />
+        <rom name="pgoal.zip" keymap="neogeo" />
+        <rom name="pnyaa.zip" keymap="neogeo" />
+        <rom name="popbounc.zip" keymap="neogeo" />
+        <rom name="preisle2.zip" keymap="neogeo" />
+        <rom name="pspikes2.zip" keymap="neogeo" />
+        <rom name="pulstar.zip" keymap="neogeo" />
+        <rom name="puzzldpr.zip" keymap="neogeo" />
+        <rom name="puzzledp.zip" keymap="neogeo" />
+        <rom name="quizdai2.zip" keymap="neogeo" />
+        <rom name="quizdais.zip" keymap="neogeo" />
+        <rom name="quizkof.zip" keymap="neogeo" />
+        <rom name="ragnagrd.zip" keymap="neogeo" />
+        <rom name="rbff1.zip" keymap="neogeo" />
+        <rom name="rbff1a.zip" keymap="neogeo" />
+        <rom name="rbff2.zip" keymap="neogeo" />
+        <rom name="rbff2h.zip" keymap="neogeo" />
+        <rom name="rbff2k.zip" keymap="neogeo" />
+        <rom name="rbffspec.zip" keymap="neogeo" />
+        <rom name="ridhero.zip" keymap="neogeo" />
+        <rom name="ridheroh.zip" keymap="neogeo" />
+        <rom name="roboarmy.zip" keymap="neogeo" />
+        <rom name="rotd.zip" keymap="neogeo" />
+        <rom name="s1945p.zip" keymap="neogeo" />
+        <rom name="samsh5sp.zip" keymap="neogeo" />
+        <rom name="samsh5sph.zip" keymap="neogeo" />
+        <rom name="samsh5spn.zip" keymap="neogeo" />
+        <rom name="samsho.zip" keymap="neogeo" />
+        <rom name="samsho2.zip" keymap="neogeo" />
+        <rom name="samsho3.zip" keymap="neogeo" />
+        <rom name="samsho3h.zip" keymap="neogeo" />
+        <rom name="samsho4.zip" keymap="neogeo" />
+        <rom name="samsho5.zip" keymap="neogeo" />
+        <rom name="samsho5b.zip" keymap="neogeo" />
+        <rom name="samsho5h.zip" keymap="neogeo" />
+        <rom name="samshoh.zip" keymap="neogeo" />
+        <rom name="savagere.zip" keymap="neogeo" />
+        <rom name="sdodgeb.zip" keymap="neogeo" />
+        <rom name="sengokh.zip" keymap="neogeo" />
+        <rom name="sengoku.zip" keymap="neogeo" />
+        <rom name="sengoku2.zip" keymap="neogeo" />
+        <rom name="sengoku3.zip" keymap="neogeo" />
+        <rom name="shocktr2.zip" keymap="neogeo" />
+        <rom name="shocktra.zip" keymap="neogeo" />
+        <rom name="shocktro.zip" keymap="neogeo" />
+        <rom name="socbrawl.zip" keymap="neogeo" />
+        <rom name="socbrawla.zip" keymap="neogeo" />
+        <rom name="sonicwi2.zip" keymap="neogeo" />
+        <rom name="sonicwi3.zip" keymap="neogeo" />
+        <rom name="spinmast.zip" keymap="neogeo" />
+        <rom name="ssideki.zip" keymap="neogeo" />
+        <rom name="ssideki2.zip" keymap="neogeo" />
+        <rom name="ssideki3.zip" keymap="neogeo" />
+        <rom name="ssideki4.zip" keymap="neogeo" />
+        <rom name="stakwin.zip" keymap="neogeo" />
+        <rom name="stakwin2.zip" keymap="neogeo" />
+        <rom name="strhoop.zip" keymap="neogeo" />
+        <rom name="superspy.zip" keymap="neogeo" />
+        <rom name="svc.zip" keymap="neogeo" />
+        <rom name="svcboot.zip" keymap="neogeo" />
+        <rom name="svcpcb.zip" keymap="neogeo" />
+        <rom name="svcpcba.zip" keymap="neogeo" />
+        <rom name="svcplus.zip" keymap="neogeo" />
+        <rom name="svcplusa.zip" keymap="neogeo" />
+        <rom name="svcsplus.zip" keymap="neogeo" />
+        <rom name="tophuntr.zip" keymap="neogeo" />
+        <rom name="tophuntra.zip" keymap="neogeo" />
+        <rom name="tpgolf.zip" keymap="neogeo" />
+        <rom name="trally.zip" keymap="neogeo" />
+        <rom name="turfmast.zip" keymap="neogeo" />
+        <rom name="twinspri.zip" keymap="neogeo" />
+        <rom name="tws96.zip" keymap="neogeo" />
+        <rom name="viewpoin.zip" keymap="neogeo" />
+        <rom name="vliner.zip" keymap="neogeo" />
+        <rom name="vlinero.zip" keymap="neogeo" />
+        <rom name="wakuwak7.zip" keymap="neogeo" />
+        <rom name="wh1.zip" keymap="neogeo" />
+        <rom name="wh1h.zip" keymap="neogeo" />
+        <rom name="wh1ha.zip" keymap="neogeo" />
+        <rom name="wh2.zip" keymap="neogeo" />
+        <rom name="wh2j.zip" keymap="neogeo" />
+        <rom name="wh2jh.zip" keymap="neogeo" />
+        <rom name="whp.zip" keymap="neogeo" />
+        <rom name="wjammers.zip" keymap="neogeo" />
+        <rom name="zedblade.zip" keymap="neogeo" />
+        <rom name="zintrckb.zip" keymap="neogeo" />
+        <rom name="zupapa.zip" keymap="neogeo" />
+        
+        <!-- Vertical games -->
+        <rom name="8ballact.zip" rotate="3" />
+        <rom name="19xx.zip" rotate="3" />
+        <rom name="800fath.zip" rotate="3" />
+        <rom name="1941.zip" rotate="3" />
+        <rom name="1941j.zip" rotate="3" />
+        <rom name="1942.zip" rotate="3" />
+        <rom name="1943.zip" rotate="3" />
+        <rom name="1943u.zip" rotate="3" />
+        <rom name="1943kai.zip" rotate="3" />
+        <rom name="1945kiii.zip" rotate="3" />
+        <rom name="abscam.zip" rotate="3" />
+        <rom name="acrobatm.zip" rotate="3" />
+        <rom name="aerofgt.zip" rotate="3" />
+        <rom name="agallet.zip" rotate="3" />
+        <rom name="airattck.zip" rotate="3" />
+        <rom name="airduel.zip" rotate="3" />
+        <rom name="ajax.zip" rotate="3" />
+        <rom name="alibaba.zip" rotate="3" />
+        <rom name="alleymas.zip" rotate="3" />
+        <rom name="alphaxz.zip" rotate="3" />
+        <rom name="alpine.zip" rotate="3" />
+        <rom name="amidar.zip" rotate="3" />
+        <rom name="anteater.zip" rotate="3" />
+        <rom name="apb.zip" rotate="3" />
+        <rom name="arabian.zip" rotate="3" />
+        <rom name="arbalest.zip" rotate="3" />
+        <rom name="arcadian.zip" rotate="3" />
+        <rom name="argus.zip" rotate="3" />
+        <rom name="arkanoid.zip" rotate="3" />
+        <rom name="arkatour.zip" rotate="3" />
+        <rom name="arknoid2.zip" rotate="3" />
+        <rom name="armedff.zip" rotate="3" />
+        <rom name="armorcar.zip" rotate="3" />
+        <rom name="ashura.zip" rotate="3" />
+        <rom name="ashurau.zip" rotate="3" />
+        <rom name="aso.zip" rotate="3" />
+        <rom name="assault.zip" rotate="3" />
+        <rom name="astinvad.zip" rotate="3" />
+        <rom name="astrob.zip" rotate="3" />
+        <rom name="astrof.zip" rotate="3" />
+        <rom name="asuka.zip" rotate="3" />
+        <rom name="atetcktl.zip" rotate="3" />
+        <rom name="bagman.zip" rotate="3" />
+        <rom name="batman2.zip" rotate="3" />
+        <rom name="batrider.zip" rotate="3" />
+        <rom name="batsuguna.zip" rotate="3" />
+        <rom name="battlane.zip" rotate="3" />
+        <rom name="battlnts.zip" rotate="3" />
+        <rom name="battroad.zip" rotate="3" />
+        <rom name="bbakraid.zip" rotate="3" />
+        <rom name="bbakraidj.zip" rotate="3" />
+        <rom name="beastf.zip" rotate="3" />
+        <rom name="bermudat.zip" rotate="3" />
+        <rom name="bgaregga.zip" rotate="3" />
+        <rom name="bigkong.zip" rotate="3" />
+        <rom name="bioatack.zip" rotate="3" />
+        <rom name="bkraidu.zip" rotate="3" />
+        <rom name="bladestl.zip" rotate="3" />
+        <rom name="blastoff.zip" rotate="3" />
+        <rom name="blazer.zip" rotate="3" />
+        <rom name="blkhole.zip" rotate="3" />
+        <rom name="block.zip" rotate="3" />
+        <rom name="blockgal.zip" rotate="3" />
+        <rom name="blswhstl.zip" rotate="3" />
+        <rom name="bluehawk.zip" rotate="3" />
+        <rom name="blueprnt.zip" rotate="3" />
+        <rom name="bnj.zip" rotate="3" />
+        <rom name="bombbee.zip" rotate="3" />
+        <rom name="bombjack.zip" rotate="3" />
+        <rom name="bongo.zip" rotate="3" />
+        <rom name="bowlrama.zip" rotate="3" />
+        <rom name="btime.zip" rotate="3" />
+        <rom name="bullfgtr.zip" rotate="3" />
+        <rom name="cairblad.zip" rotate="3" />
+        <rom name="calibr50.zip" rotate="3" />
+        <rom name="carnival.zip" rotate="3" />
+        <rom name="cavelon.zip" rotate="3" />
+        <rom name="centiped.zip" rotate="3" />
+        <rom name="cheekyms.zip" rotate="3" />
+        <rom name="choppera.zip" rotate="3" />
+        <rom name="circusc.zip" rotate="3" />
+        <rom name="citybomb.zip" rotate="3" />
+        <rom name="ckongo.zip" rotate="3" />
+        <rom name="colony7.zip" rotate="3" />
+        <rom name="commando.zip" rotate="3" />
+        <rom name="commsega.zip" rotate="3" />
+        <rom name="condor.zip" rotate="3" />
+        <rom name="congo.zip" rotate="3" />
+        <rom name="cosmogng.zip" rotate="3" />
+        <rom name="crush.zip" rotate="3" />
+        <rom name="crzrally.zip" rotate="3" />
+        <rom name="cutieq.zip" rotate="3" />
+        <rom name="cybattlr.zip" rotate="3" />
+        <rom name="cyvern.zip" rotate="3" />
+        <rom name="daioha.zip" rotate="3" />
+        <rom name="dangar.zip" rotate="3" />
+        <rom name="dangseed.zip" rotate="3" />
+        <rom name="darwin.zip" rotate="3" />
+        <rom name="ddonpach.zip" rotate="3" />
+        <rom name="ddp2.zip" rotate="3" />
+        <rom name="ddpdoj.zip" rotate="3" />
+        <rom name="desertwr.zip" rotate="3" />
+        <rom name="devilfsh.zip" rotate="3" />
+        <rom name="devstors.zip" rotate="3" />
+        <rom name="devzone.zip" rotate="3" />
+        <rom name="dfeveron.zip" rotate="3" />
+        <rom name="digdug.zip" rotate="3" />
+        <rom name="digdug2.zip" rotate="3" />
+        <rom name="dimahoo.zip" rotate="3" />
+        <rom name="dingo.zip" rotate="3" />
+        <rom name="disco.zip" rotate="3" />
+        <rom name="dkong.zip" rotate="3" />
+        <rom name="dkong3.zip" rotate="3" />
+        <rom name="dkongjr.zip" rotate="3" />
+        <rom name="docastle.zip" rotate="3" />
+        <rom name="dockman.zip" rotate="3" />
+        <rom name="dogfight.zip" rotate="3" />
+        <rom name="dogyuun.zip" rotate="3" />
+        <rom name="dommy.zip" rotate="3" />
+        <rom name="donpachi.zip" rotate="3" />
+        <rom name="dorodon.zip" rotate="3" />
+        <rom name="downtown.zip" rotate="3" />
+        <rom name="dragnblz.zip" rotate="3" />
+        <rom name="dremshpr.zip" rotate="3" />
+        <rom name="drmicro.zip" rotate="3" />
+        <rom name="drtoppel.zip" rotate="3" />
+        <rom name="dsaber.zip" rotate="3" />
+        <rom name="dspirit.zip" rotate="3" />
+        <rom name="dyger.zip" rotate="3" />
+        <rom name="eagle.zip" rotate="3" />
+        <rom name="earthjkr.zip" rotate="3" />
+        <rom name="eggor.zip" rotate="3" />
+        <rom name="eightfrc.zip" rotate="3" />
+        <rom name="elecyoyo.zip" rotate="3" />
+        <rom name="enigma2.zip" rotate="3" />
+        <rom name="enigma2a.zip" rotate="3" />
+        <rom name="espgal.zip" rotate="3" />
+        <rom name="esprade.zip" rotate="3" />
+        <rom name="evilston.zip" rotate="3" />
+        <rom name="exctsccr.zip" rotate="3" />
+        <rom name="exedexes.zip" rotate="3" />
+        <rom name="exerion.zip" rotate="3" />
+        <rom name="explbrkr.zip" rotate="3" />
+        <rom name="extrmatn.zip" rotate="3" />
+        <rom name="eyes.zip" rotate="3" />
+        <rom name="fantasia.zip" rotate="3" />
+        <rom name="fantazia.zip" rotate="3" />
+        <rom name="fantsy95.zip" rotate="3" />
+        <rom name="fastfred.zip" rotate="3" />
+        <rom name="feversos.zip" rotate="3" />
+        <rom name="fhawk.zip" rotate="3" />
+        <rom name="fightrol.zip" rotate="3" />
+        <rom name="finalizr.zip" rotate="3" />
+        <rom name="firebatl.zip" rotate="3" />
+        <rom name="fireshrk.zip" rotate="3" />
+        <rom name="firetrap.zip" rotate="3" />
+        <rom name="flyboyb.zip" rotate="3" />
+        <rom name="flytiger.zip" rotate="3" />
+        <rom name="fnkyfish.zip" rotate="3" />
+        <rom name="freekckb.zip" rotate="3" />
+        <rom name="freekickb.zip" rotate="3" />
+        <rom name="frogg.zip" rotate="3" />
+        <rom name="frogger.zip" rotate="3" />
+        <rom name="froggers.zip" rotate="3" />
+        <rom name="frontlin.zip" rotate="3" />
+        <rom name="fshark.zip" rotate="3" />
+        <rom name="fsharkbt.zip" rotate="3" />
+        <rom name="fstarfrc.zip" rotate="3" />
+        <rom name="funkybee.zip" rotate="3" />
+        <rom name="funnymou.zip" rotate="3" />
+        <rom name="futspy.zip" rotate="3" />
+        <rom name="galaga.zip" rotate="3" />
+        <rom name="galaga3.zip" rotate="3" />
+        <rom name="galaga84.zip" rotate="3" />
+        <rom name="galaga88.zip" rotate="3" />
+        <rom name="galagads.zip" rotate="3" />
+        <rom name="galapx.zip" rotate="3" />
+        <rom name="galaxian.zip" rotate="3" />
+        <rom name="galaxygn.zip" rotate="3" />
+        <rom name="galmedes.zip" rotate="3" />
+        <rom name="galpanic.zip" rotate="3" />
+        <rom name="galsnew.zip" rotate="3" />
+        <rom name="galturbo.zip" rotate="3" />
+        <rom name="galxwars.zip" rotate="3" />
+        <rom name="gametngk.zip" rotate="3" />
+        <rom name="gaplus.zip" rotate="3" />
+        <rom name="gardia.zip" rotate="3" />
+        <rom name="gberet.zip" rotate="3" />
+        <rom name="gbusters.zip" rotate="3" />
+        <rom name="gekirido.zip" rotate="3" />
+        <rom name="gekiridn.zip" rotate="3" />
+        <rom name="gekiridnj.zip" rotate="3" />
+        <rom name="gemini.zip" rotate="3" />
+        <rom name="gigasm2b.zip" rotate="3" />
+        <rom name="gmgalax.zip" rotate="3" />
+        <rom name="gomoku.zip" rotate="3" />
+        <rom name="gondo.zip" rotate="3" />
+        <rom name="gorf.zip" rotate="3" />
+        <rom name="gorfpgm1.zip" rotate="3" />
+        <rom name="gorkans.zip" rotate="3" />
+        <rom name="grindstm.zip" rotate="3" />
+        <rom name="grobda.zip" rotate="3" />
+        <rom name="gseeker.zip" rotate="3" />
+        <rom name="gundhara.zip" rotate="3" />
+        <rom name="gulfstrm.zip" rotate="3" />
+        <rom name="gulfwar2.zip" rotate="3" />
+        <rom name="gunbird.zip" rotate="3" />
+        <rom name="gunbird2.zip" rotate="3" />
+        <rom name="gundealr.zip" rotate="3" />
+        <rom name="gunfront.zip" rotate="3" />
+        <rom name="gunlock.zip" rotate="3" />
+        <rom name="gunnail.zip" rotate="3" />
+        <rom name="gunsmoke.zip" rotate="3" />
+        <rom name="guwange.zip" rotate="3" />
+        <rom name="guzzler.zip" rotate="3" />
+        <rom name="gwar.zip" rotate="3" />
+        <rom name="gyrodine.zip" rotate="3" />
+        <rom name="gyruss.zip" rotate="3" />
+        <rom name="hal21.zip" rotate="3" />
+        <rom name="halleys.zip" rotate="3" />
+        <rom name="hangly.zip" rotate="3" />
+        <rom name="hbarrel.zip" rotate="3" />
+        <rom name="herodk.zip" rotate="3" />
+        <rom name="hoccer.zip" rotate="3" />
+        <rom name="hopprobo.zip" rotate="3" />
+        <rom name="hotdogst.zip" rotate="3" />
+        <rom name="hustler.zip" rotate="3" />
+        <rom name="hwrace.zip" rotate="3" />
+        <rom name="ikari.zip" rotate="3" />
+        <rom name="imgfight.zip" rotate="3" />
+        <rom name="intrepid.zip" rotate="3" />
+        <rom name="invad2ct.zip" rotate="3" />
+        <rom name="invaders.zip" rotate="3" />
+        <rom name="invadpt2.zip" rotate="3" />
+        <rom name="jack.zip" rotate="3" />
+        <rom name="jackal.zip" rotate="3" />
+        <rom name="jjack.zip" rotate="3" />
+        <rom name="joinem.zip" rotate="3" />
+        <rom name="jollyjgr.zip" rotate="3" />
+        <rom name="journey.zip" rotate="3" />
+        <rom name="joust2.zip" rotate="3" />
+        <rom name="joyman.zip" rotate="3" />
+        <rom name="jrpacman.zip" rotate="3" />
+        <rom name="jumpcoas.zip" rotate="3" />
+        <rom name="jungler.zip" rotate="3" />
+        <rom name="junofrst.zip" rotate="3" />
+        <rom name="kageki.zip" rotate="3" />
+        <rom name="kangaroo.zip" rotate="3" />
+        <rom name="kaos.zip" rotate="3" />
+        <rom name="kchamp.zip" rotate="3" />
+        <rom name="kick.zip" rotate="3" />
+        <rom name="kicka.zip" rotate="3" />
+        <rom name="kicker.zip" rotate="3" />
+        <rom name="kingball.zip" rotate="3" />
+        <rom name="ktiger2.zip" rotate="3" />
+        <rom name="korosuke.zip" rotate="3" />
+        <rom name="krull.zip" rotate="3" />
+        <rom name="kuhga.zip" rotate="3" />
+        <rom name="labyrunr.zip" rotate="3" />
+        <rom name="ladybug.zip" rotate="3" />
+        <rom name="lasso.zip" rotate="3" />
+        <rom name="lastday.zip" rotate="3" />
+        <rom name="lastduel.zip" rotate="3" />
+        <rom name="lastmisn.zip" rotate="3" />
+        <rom name="legion.zip" rotate="3" />
+        <rom name="legofair.zip" rotate="3" />
+        <rom name="lethalth.zip" rotate="3" />
+        <rom name="lgtnfght.zip" rotate="3" />
+        <rom name="liberate.zip" rotate="3" />
+        <rom name="lnc.zip" rotate="3" />
+        <rom name="locomotn.zip" rotate="3" />
+        <rom name="looping.zip" rotate="3" />
+        <rom name="losttomb.zip" rotate="3" />
+        <rom name="lrescue.zip" rotate="3" />
+        <rom name="lwings.zip" rotate="3" />
+        <rom name="m660.zip" rotate="3" />
+        <rom name="macross.zip" rotate="3" />
+        <rom name="macrossp.zip" rotate="3" />
+        <rom name="madalien.zip" rotate="3" />
+        <rom name="madgear.zip" rotate="3" />
+        <rom name="madshark.zip" rotate="3" />
+        <rom name="mahoudai.zip" rotate="3" />
+        <rom name="mappy.zip" rotate="3" />
+        <rom name="masterw.zip" rotate="3" />
+        <rom name="mazinger.zip" rotate="3" />
+        <rom name="megazone.zip" rotate="3" />
+        <rom name="mercs.zip" rotate="3" />
+        <rom name="metafox.zip" rotate="3" />
+        <rom name="mightguy.zip" rotate="3" />
+        <rom name="mikie.zip" rotate="3" />
+        <rom name="milliped.zip" rotate="3" />
+        <rom name="mimonkey.zip" rotate="3" />
+        <rom name="mmonkey.zip" rotate="3" />
+        <rom name="monkeyd.zip" rotate="3" />
+        <rom name="monsterb.zip" rotate="3" />
+        <rom name="monymony.zip" rotate="3" />
+        <rom name="moonal2.zip" rotate="3" />
+        <rom name="moonaln.zip" rotate="3" />
+        <rom name="mooncrst.zip" rotate="3" />
+        <rom name="moonwar.zip" rotate="3" />
+        <rom name="motos.zip" rotate="3" />
+        <rom name="mouser.zip" rotate="3" />
+        <rom name="mplanets.zip" rotate="3" />
+        <rom name="mrdo.zip" rotate="3" />
+        <rom name="mrjong.zip" rotate="3" />
+        <rom name="mrkougar.zip" rotate="3" />
+        <rom name="mrtnt.zip" rotate="3" />
+        <rom name="mrviking.zip" rotate="3" />
+        <rom name="mspacman.zip" rotate="3" />
+        <rom name="mspacmat.zip" rotate="3" />
+        <rom name="mspacmnf.zip" rotate="3" />
+        <rom name="mspacpls.zip" rotate="3" />
+        <rom name="mx5000.zip" rotate="3" />
+        <rom name="mystston.zip" rotate="3" />
+        <rom name="naughtyb.zip" rotate="3" />
+        <rom name="navarone.zip" rotate="3" />
+        <rom name="neobattl.zip" rotate="3" />
+        <rom name="netwars.zip" rotate="3" />
+        <rom name="newfant.zip" rotate="3" />
+        <rom name="newpuc2.zip" rotate="3" />
+        <rom name="newpuckx.zip" rotate="3" />
+        <rom name="newsin7.zip" rotate="3" />
+        <rom name="nibblera.zip" rotate="3" />
+        <rom name="ninjemak.zip" rotate="3" />
+        <rom name="nmouse.zip" rotate="3" />
+        <rom name="nost.zip" rotate="3" />
+        <rom name="nunchaku.zip" rotate="3" />
+        <rom name="olibochu.zip" rotate="3" />
+        <rom name="omegaf.zip" rotate="3" />
+        <rom name="omegafs.zip" rotate="3" />
+        <rom name="outzonea.zip" rotate="3" />
+        <rom name="ozmawars.zip" rotate="3" />
+        <rom name="pacheart.zip" rotate="3" />
+        <rom name="pacman.zip" rotate="3" />
+        <rom name="pacmanbl.zip" rotate="3" />
+        <rom name="pacnpal.zip" rotate="3" />
+        <rom name="pacplus.zip" rotate="3" />
+        <rom name="pandoras.zip" rotate="3" />
+        <rom name="panic.zip" rotate="3" />
+        <rom name="panich.zip" rotate="3" />
+        <rom name="pbaction.zip" rotate="3" />
+        <rom name="pengo.zip" rotate="3" />
+        <rom name="percuss.zip" rotate="3" />
+        <rom name="perestro.zip" rotate="3" />
+        <rom name="perfrman.zip" rotate="3" />
+        <rom name="phelios.zip" rotate="3" />
+        <rom name="phoenix.zip" rotate="3" />
+        <rom name="phoenixc.zip" rotate="3" />
+        <rom name="phozon.zip" rotate="3" />
+        <rom name="pickin.zip" rotate="3" />
+        <rom name="pinbo.zip" rotate="3" />
+        <rom name="piranha.zip" rotate="3" />
+        <rom name="piranhah.zip" rotate="3" />
+        <rom name="pisces.zip" rotate="3" />
+        <rom name="pleiads.zip" rotate="3" />
+        <rom name="plgirls.zip" rotate="3" />
+        <rom name="plgirls2.zip" rotate="3" />
+        <rom name="plusalph.zip" rotate="3" />
+        <rom name="polaris.zip" rotate="3" />
+        <rom name="polarisa.zip" rotate="3" />
+        <rom name="pollux.zip" rotate="3" />
+        <rom name="pooyan.zip" rotate="3" />
+        <rom name="popflame.zip" rotate="3" />
+        <rom name="popper.zip" rotate="3" />
+        <rom name="psurge.zip" rotate="3" />
+        <rom name="puckman.zip" rotate="3" />
+        <rom name="puckmanf.zip" rotate="3" />
+        <rom name="qbert.zip" rotate="3" />
+        <rom name="qbertqub.zip" rotate="3" />
+        <rom name="qix.zip" rotate="3" />
+        <rom name="qix2.zip" rotate="3" />
+        <rom name="quester.zip" rotate="3" />
+        <rom name="radarscp.zip" rotate="3" />
+        <rom name="raflesia.zip" rotate="3" />
+        <rom name="raiden.zip" rotate="3" />
+        <rom name="rallybik.zip" rotate="3" />
+        <rom name="raphero.zip" rotate="3" />
+        <rom name="rayforce.zip" rotate="3" />
+        <rom name="rayforcej.zip" rotate="3" />
+        <rom name="redufo.zip" rotate="3" />
+        <rom name="redufob.zip" rotate="3" />
+        <rom name="regulus.zip" rotate="3" />
+        <rom name="retofinv.zip" rotate="3" />
+        <rom name="ringking.zip" rotate="3" />
+        <rom name="roadf.zip" rotate="3" />
+        <rom name="rocnrope.zip" rotate="3" />
+        <rom name="rompers.zip" rotate="3" />
+        <rom name="roundup.zip" rotate="3" />
+        <rom name="rshark.zip" rotate="3" />
+        <rom name="rugrats.zip" rotate="3" />
+        <rom name="ryujin.zip" rotate="3" />
+        <rom name="s1945.zip" rotate="3" />
+        <rom name="s1945ii.zip" rotate="3" />
+        <rom name="s1945iii.zip" rotate="3" />
+        <rom name="samuraia.zip" rotate="3" />
+        <rom name="sandscrp.zip" rotate="3" />
+        <rom name="satansat.zip" rotate="3" />
+        <rom name="saturn.zip" rotate="3" />
+        <rom name="saturnzi.zip" rotate="3" />
+        <rom name="sbagman.zip" rotate="3" />
+        <rom name="sbasketb.zip" rotate="3" />
+        <rom name="sbomber.zip" rotate="3" />
+        <rom name="sbrkout.zip" rotate="3" />
+        <rom name="scobra.zip" rotate="3" />
+        <rom name="scontra.zip" rotate="3" />
+        <rom name="scramblb.zip" rotate="3" />
+        <rom name="scramble.zip" rotate="3" />
+        <rom name="scregg.zip" rotate="3" />
+        <rom name="sdtennis.zip" rotate="3" />
+        <rom name="sdungeon.zip" rotate="3" />
+        <rom name="searchar.zip" rotate="3" />
+        <rom name="seicross.zip" rotate="3" />
+        <rom name="sengekis.zip" rotate="3" />
+        <rom name="sengekisj.zip" rotate="3" />
+        <rom name="senjyo.zip" rotate="3" />
+        <rom name="sformula.zip" rotate="3" />
+        <rom name="shaolins.zip" rotate="3" />
+        <rom name="shippumd.zip" rotate="3" />
+        <rom name="shollow.zip" rotate="3" />
+        <rom name="shtrider.zip" rotate="3" />
+        <rom name="silvmil.zip" rotate="3" />
+        <rom name="sindbadm.zip" rotate="3" />
+        <rom name="sinistar.zip" rotate="3" />
+        <rom name="sinvemag.zip" rotate="3" />
+        <rom name="skyadvnt.zip" rotate="3" />
+        <rom name="skyalert.zip" rotate="3" />
+        <rom name="skybase.zip" rotate="3" />
+        <rom name="skyfox.zip" rotate="3" />
+        <rom name="skyshark.zip" rotate="3" />
+        <rom name="skysmash.zip" rotate="3" />
+        <rom name="skysoldr.zip" rotate="3" />
+        <rom name="slapfigh.zip" rotate="3" />
+        <rom name="slapfighb1.zip" rotate="3" />
+        <rom name="slither.zip" rotate="3" />
+        <rom name="smooncrs.zip" rotate="3" />
+        <rom name="solarfox.zip" rotate="3" />
+        <rom name="sonicbom.zip" rotate="3" />
+        <rom name="sonicwi.zip" rotate="3" />
+        <rom name="sonofphx.zip" rotate="3" />
+        <rom name="spacefbb.zip" rotate="3" />
+        <rom name="spaceplt.zip" rotate="3" />
+        <rom name="spbactn.zip" rotate="3" />
+        <rom name="spcforce.zip" rotate="3" />
+        <rom name="spcinv95.zip" rotate="3" />
+        <rom name="spcking2.zip" rotate="3" />
+        <rom name="spctbird.zip" rotate="3" />
+        <rom name="speakres.zip" rotate="3" />
+        <rom name="speedbal.zip" rotate="3" />
+        <rom name="spiders.zip" rotate="3" />
+        <rom name="springer.zip" rotate="3" />
+        <rom name="sqix.zip" rotate="3" />
+        <rom name="sraider.zip" rotate="3" />
+        <rom name="srdarwin.zip" rotate="3" />
+        <rom name="srdmissn.zip" rotate="3" />
+        <rom name="srumbler.zip" rotate="3" />
+        <rom name="ssi.zip" rotate="3" />
+        <rom name="ssmissin.zip" rotate="3" />
+        <rom name="ssozumo.zip" rotate="3" />
+        <rom name="sstriker.zip" rotate="3" />
+        <rom name="stagger1.zip" rotate="3" />
+        <rom name="starfght.zip" rotate="3" />
+        <rom name="starforc.zip" rotate="3" />
+        <rom name="starjack.zip" rotate="3" />
+        <rom name="stg.zip" rotate="3" />
+        <rom name="stinger.zip" rotate="3" />
+        <rom name="stmblade.zip" rotate="3" />
+        <rom name="stratab.zip" rotate="3" />
+        <rom name="streakng.zip" rotate="3" />
+        <rom name="superg.zip" rotate="3" />
+        <rom name="superpac.zip" rotate="3" />
+        <rom name="superx.zip" rotate="3" />
+        <rom name="supmodel.zip" rotate="3" />
+        <rom name="suprmous.zip" rotate="3" />
+        <rom name="swarm.zip" rotate="3" />
+        <rom name="swat.zip" rotate="3" />
+        <rom name="sxevious.zip" rotate="3" />
+        <rom name="szaxxon.zip" rotate="3" />
+        <rom name="tacscan.zip" rotate="3" />
+        <rom name="tactcian.zip" rotate="3" />
+        <rom name="tagteam.zip" rotate="3" />
+        <rom name="tail2nos.zip" rotate="3" />
+        <rom name="tankbatt.zip" rotate="3" />
+        <rom name="tcobra2.zip" rotate="3" />
+        <rom name="tcobra2u.zip" rotate="3" />
+        <rom name="tdragon.zip" rotate="3" />
+        <rom name="tdragon2.zip" rotate="3" />
+        <rom name="tempest1.zip" rotate="3" />
+        <rom name="terracre.zip" rotate="3" />
+        <rom name="terracren.zip" rotate="3" />
+        <rom name="tharrier.zip" rotate="3" />
+        <rom name="theend.zip" rotate="3" />
+        <rom name="thehustl.zip" rotate="3" />
+        <rom name="thepit.zip" rotate="3" />
+        <rom name="thepitm.zip" rotate="3" />
+        <rom name="tigerh.zip" rotate="3" />
+        <rom name="timeplt.zip" rotate="3" />
+        <rom name="timesold.zip" rotate="3" />
+        <rom name="timscanr.zip" rotate="3" />
+        <rom name="tndrcade.zip" rotate="3" />
+        <rom name="tnk3.zip" rotate="3" />
+        <rom name="todruaga.zip" rotate="3" />
+        <rom name="tokiob.zip" rotate="3" />
+        <rom name="toobin.zip" rotate="3" />
+        <rom name="toprollr.zip" rotate="3" />
+        <rom name="tp84.zip" rotate="3" />
+        <rom name="travrusa.zip" rotate="3" />
+        <rom name="tricktrp.zip" rotate="3" />
+        <rom name="triplep.zip" rotate="3" />
+        <rom name="tron.zip" rotate="3" />
+        <rom name="truxton.zip" rotate="3" />
+        <rom name="truxton2.zip" rotate="3" />
+        <rom name="tryout.zip" rotate="3" />
+        <rom name="tsamurai.zip" rotate="3" />
+        <rom name="turbofrc.zip" rotate="3" />
+        <rom name="turpin.zip" rotate="3" />
+        <rom name="tutankhm.zip" rotate="3" />
+        <rom name="twincobr.zip" rotate="3" />
+        <rom name="twineag2.zip" rotate="3" />
+        <rom name="twineagl.zip" rotate="3" />
+        <rom name="twinhawk.zip" rotate="3" />
+        <rom name="typhoon.zip" rotate="3" />
+        <rom name="ultrax.zip" rotate="3" />
+        <rom name="uniwars.zip" rotate="3" />
+        <rom name="upndown.zip" rotate="3" />
+        <rom name="valtric.zip" rotate="3" />
+        <rom name="vangrd2.zip" rotate="3" />
+        <rom name="vanvan.zip" rotate="3" />
+        <rom name="vaportra.zip" rotate="3" />
+        <rom name="varth.zip" rotate="3" />
+        <rom name="vasara.zip" rotate="3" />
+        <rom name="vasara2.zip" rotate="3" />
+        <rom name="vastar.zip" rotate="3" />
+        <rom name="victroad.zip" rotate="3" />
+        <rom name="vimana.zip" rotate="3" />
+        <rom name="vmetal.zip" rotate="3" />
+        <rom name="vsgongf.zip" rotate="3" />
+        <rom name="vulgus.zip" rotate="3" />
+        <rom name="vulgusj.zip" rotate="3" />
+        <rom name="wanted.zip" rotate="3" />
+        <rom name="warpwarp.zip" rotate="3" />
+        <rom name="waterski.zip" rotate="3" />
+        <rom name="wiping.zip" rotate="3" />
+        <rom name="wiz.zip" rotate="3" />
+        <rom name="wndrplnt.zip" rotate="3" />
+        <rom name="woodpeck.zip" rotate="3" />
+        <rom name="wrestwar.zip" rotate="3" />
+        <rom name="wrofaero.zip" rotate="3" />
+        <rom name="wwestern.zip" rotate="3" />
+        <rom name="xevious.zip" rotate="3" />
+        <rom name="xxmissio.zip" rotate="3" />
+        <rom name="yamagchi.zip" rotate="3" />
+        <rom name="yamato.zip" rotate="3" />
+        <rom name="youma.zip" rotate="3" />
+        <rom name="zaviga.zip" rotate="3" />
+        <rom name="zaxxon.zip" rotate="3" />
+        <rom name="zigzag.zip" rotate="3" />
+        <rom name="zingzip.zip" rotate="3" />
+        <rom name="zoar.zip" rotate="3" />
+        <rom name="zodiack.zip" rotate="3" />
+        <rom name="zzyzzyxx.zip" rotate="3" />
+    </roms>
+</pandory>

@@ -1,0 +1,2 @@
+"""Editor application package."""
+

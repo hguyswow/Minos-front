@@ -1,0 +1,1 @@
+Linux version 4.4.159 (zhang@zhang-VirtualBox) (gcc version 6.3.1 20170404 (Linaro GCC 6.3-2017.05) ) #252 SMP Sun Jul 26 00:19:39 CST 2020

@@ -1,0 +1,11 @@
+major minor  #blocks  name
+
+  31        0     223744 rkflash0
+  31        1       1024 rkflash0p1
+  31        2       2048 rkflash0p2
+  31        3       4224 rkflash0p3
+  31        4      91989 rkflash0p4
+  31        5       1024 rkflash0p5
+  31        6       5871 rkflash0p6
+ 179        0   31260672 mmcblk0
+ 179        1   30285824 mmcblk0p1

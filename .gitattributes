@@ -1,0 +1,17 @@
+# Device-side files must keep their exact bytes (LF); never convert them.
+reference/** -text
+*.sh text eol=lf
+# Source and docs: LF in the repository, on every platform.
+*.py text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+.gitignore text eol=lf
+# Windows launchers need CRLF.
+*.bat text eol=crlf
+# Binary samples.
+*.png binary
+*.jpg binary
+*.mp4 binary
+*.avi binary
+*.mp3 binary
+*.wav binary

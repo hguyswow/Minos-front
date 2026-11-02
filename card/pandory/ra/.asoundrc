@@ -1,0 +1,18 @@
+# Force 16-bit output to the RK3128 codec (the stock RetroArch 1.7.4 sends S16; RetroArch 1.22 sends float, which ALSA turns into S32 and this chip plays at half speed with noise).
+# ra16   : same route as the stock "internal" device (volume control + codec), but 16-bit.
+# ra16hw : straight to the codec, 16-bit, no volume control.  <- THIS ONE IS USED (verified: 59 fps, clean sound, hw format S16_LE).
+# ra16   : did not start on the device, do not use.
+pcm.ra16 {
+    type plug
+    slave {
+        pcm "internal"
+        format S16_LE
+    }
+}
+pcm.ra16hw {
+    type plug
+    slave {
+        pcm "hw:0,0"
+        format S16_LE
+    }
+}

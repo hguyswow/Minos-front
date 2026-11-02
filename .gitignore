@@ -1,0 +1,9 @@
+# Python / test caches
+__pycache__/
+*.pyc
+.pytest_cache/
+.mcp.json
+# backups the editor itself creates next to card files
+*.bak
+*.bak[0-9]*
+.tmp_*

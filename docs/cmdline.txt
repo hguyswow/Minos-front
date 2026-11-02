@@ -1,0 +1,1 @@
+storagemedia=nand androidboot.slot_suffix= androidboot.serialno=c3d9b8674f4b94f6  rootwait console=null loglevel=0 swiotlb=1 root=PARTUUID=614e0000-0000-4b53-8000-1d28000054a9
