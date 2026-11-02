@@ -186,6 +186,31 @@ static void en_read(const char *fn) {
     }
     fclose(f);
 }
+static void en_read_tsv(const char *fn) {           // names_en.tsv: file <TAB> english title (made by tools/build_en_names.py)
+    char p[300]; snprintf(p, sizeof p, "%s/pandory/%s", card, fn); FILE *f = fopen(p, "r"); if (!f) return; char l[600];
+    while (fgets(l, sizeof l, f)) {
+        char *t = strchr(l, '\t'); if (!t) continue; *t++ = 0; size_t tl = strlen(t); while (tl && (t[tl - 1] == '\n' || t[tl - 1] == '\r')) t[--tl] = 0; if (!tl) continue;
+        char *dot = strrchr(l, '.'); if (dot) *dot = 0; for (char *c = l; *c; c++) if (*c >= 'A' && *c <= 'Z') *c += 32;
+        if (nenm % 4096 == 0) enm = realloc(enm, (size_t)(nenm + 4096) * sizeof *enm);
+        enm[nenm].name = strdup(l); enm[nenm].title = strdup(t); nenm++;
+    }
+    fclose(f);
+}
+// Revised Romanization of Korean (simplified), used when no English name is known, so that no Hangul is left in English mode.
+static char *romanize(const char *ko) {
+    static const char *L[] = {"g", "kk", "n", "d", "tt", "r", "m", "b", "pp", "s", "ss", "", "j", "jj", "ch", "k", "t", "p", "h"};
+    static const char *V[] = {"a", "ae", "ya", "yae", "eo", "e", "yeo", "ye", "o", "wa", "wae", "oe", "yo", "u", "wo", "we", "wi", "yu", "eu", "ui", "i"};
+    static const char *T[] = {"", "k", "k", "ks", "n", "nj", "nh", "t", "l", "lk", "lm", "lb", "ls", "lt", "lp", "lh", "m", "p", "ps", "t", "t", "ng", "t", "t", "k", "t", "p", "t"};
+    char *o = malloc(strlen(ko) * 4 + 8); size_t n = 0; int newword = 1; const char *p = ko;
+    while (*p) {
+        int cp = utf8(&p);
+        if (cp >= 0xAC00 && cp <= 0xD7A3) { int s = cp - 0xAC00; const char *a = L[s / 588], *b = V[(s % 588) / 28], *c = T[s % 28]; char syl[16]; snprintf(syl, sizeof syl, "%s%s%s", a, b, c);
+            if (newword && syl[0] >= 'a' && syl[0] <= 'z') syl[0] -= 32; n += (size_t)snprintf(o + n, 16, "%s", syl); newword = 0; }
+        else if (cp < 0x80) { o[n++] = (char)cp; newword = (cp == ' ' || cp == '-' || cp == '(' ); }
+        else { o[n++] = '?'; }
+    }
+    o[n] = 0; return o;
+}
 static const char *en_title(const char *file) {
     char b[120]; snprintf(b, sizeof b, "%s", file); char *dot = strrchr(b, '.'); if (dot) *dot = 0; for (char *c = b; *c; c++) if (*c >= 'A' && *c <= 'Z') *c += 32;
     EnName key = {b, NULL}; EnName *r = bsearch(&key, enm, (size_t)nenm, sizeof *enm, en_cmp); return r ? r->title : NULL;
@@ -194,15 +219,15 @@ static int ci_cmp(const char *a, const char *b) { return strcasecmp(a, b); }
 static Sys *sort_s; static char **sort_t;
 static int idx_cmp(const void *a, const void *b) { return ci_cmp(sort_t[*(const int *)a], sort_t[*(const int *)b]); }
 static void set_lang(int en) {
-    if (en && !enm) { en_read("fba2012.txt"); en_read("mame2003.txt"); qsort(enm, (size_t)nenm, sizeof *enm, en_cmp); LOG("english names: %d", nenm); }
+    if (en && !enm) { en_read("fba2012.txt"); en_read("mame2003.txt"); en_read_tsv("names_en.tsv"); qsort(enm, (size_t)nenm, sizeof *enm, en_cmp); LOG("english names: %d", nenm); }
     lang_en = en;
     for (int si = 0; si < nsys; si++) {
-        Sys *s = &sys[si]; if (!s->lib || s->folder[0] == '_' || strcmp(s->folder, "arcade") || s->n < 1) continue;
+        Sys *s = &sys[si]; if (!s->lib || s->folder[0] == '_' || s->n < 1) continue;
         if (!s->ofile) { s->ofile = malloc((size_t)s->n * sizeof(char *)); s->otitle = malloc((size_t)s->n * sizeof(char *)); s->ogcore = malloc((size_t)s->n * sizeof(char *));
             memcpy(s->ofile, s->file, (size_t)s->n * sizeof(char *)); memcpy(s->otitle, s->title, (size_t)s->n * sizeof(char *)); memcpy(s->ogcore, s->gcore, (size_t)s->n * sizeof(char *)); }
         if (!en) { memcpy(s->file, s->ofile, (size_t)s->n * sizeof(char *)); memcpy(s->title, s->otitle, (size_t)s->n * sizeof(char *)); memcpy(s->gcore, s->ogcore, (size_t)s->n * sizeof(char *)); continue; }
         char **et = malloc((size_t)s->n * sizeof(char *)); int *ix = malloc((size_t)s->n * sizeof(int));
-        for (int i = 0; i < s->n; i++) { const char *t = en_title(s->ofile[i]); if (!t) { char *b = strdup(s->ofile[i]); char *d = strrchr(b, '.'); if (d) *d = 0; t = b; } et[i] = (char *)t; ix[i] = i; }
+        for (int i = 0; i < s->n; i++) { const char *t = en_title(s->ofile[i]); if (!t) { if (!strcmp(s->folder, "arcade")) { char *b = strdup(s->ofile[i]); char *d = strrchr(b, '.'); if (d) *d = 0; t = b; } else t = romanize(s->otitle[i]); } et[i] = (char *)t; ix[i] = i; }
         sort_t = et; qsort(ix, (size_t)s->n, sizeof(int), idx_cmp);
         for (int i = 0; i < s->n; i++) { s->file[i] = s->ofile[ix[i]]; s->title[i] = et[ix[i]]; s->gcore[i] = s->ogcore[ix[i]]; }
         free(et); free(ix);

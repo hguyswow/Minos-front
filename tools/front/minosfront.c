@@ -402,7 +402,8 @@ int main(int argc, char **argv) {
     if (nsys < MAXSYS) { Sys *st = &sys[nsys++]; memset(st, 0, sizeof *st); snprintf(st->folder, sizeof st->folder, "_orig"); snprintf(st->label, sizeof st->label, "원래 메뉴"); }
     int show[MAXSYS], nshow = 0, cur0 = 0; rebuild_show(show, &nshow, &cur0);
     { int first = 0; for (int j = 0; j < nshow; j++) if (sys[show[j]].folder[0] != '_') { first = j; break; } cur0 = first;
-      for (int j = 0; j < nshow; j++) if (!strcmp(sys[show[j]].folder, lastsys)) cur0 = j; }
+      for (int j = 0; j < nshow; j++) if (!strcmp(sys[show[j]].folder, lastsys)) cur0 = j;
+      if (getenv("MINOS_SYS")) for (int j = 0; j < nshow; j++) if (!strcmp(sys[show[j]].folder, getenv("MINOS_SYS"))) cur0 = j; }
     const char *snapdir = getenv("MINOS_SNAP");
     if (SDL_Init(SDL_INIT_EVENTS | SDL_INIT_AUDIO) != 0) { LOG("init failed"); return 4; }
     if (!video_up()) return 5;
