@@ -1,0 +1,23 @@
+#!/bin/sh
+# Menu wrapper (experiment). Pandory starts "sh /mnt/sdcard/m" instead of /usr/bin/gamemenu (string patched by tools/patch_pandory.py).
+# 1. MinosFront runs first (only when the switch file pandory/front/autostart exists);
+# 2. when MinosFront ends ("Original menu"), the stock menu takes over in this same process (exec), so there is no process to stop or kill.
+# If MinosFront dies within 6 s twice in a row the switch turns itself off (autostart_failed).
+# Test settings: CARD, FRONT_CMD, GM_CMD can be set from outside (tools/test_wrapper.sh).
+CARD=${CARD:-/mnt/sdcard}
+FD="$CARD/pandory/front"
+echo "wrapper $(date) args: $*" >> "$CARD/wrapper.log"
+if [ -f "$FD/autostart" ] && [ ! -f "$FD/autostart_failed" ]; then
+  T0=$(date +%s)
+  export XDG_RUNTIME_DIR=/data XDG_CONFIG_HOME=/data
+  ${FRONT_CMD:-/lib/ld-linux-armhf.so.3 --library-path /usr/lib:/lib $CARD/pandory/bin/minosfront $CARD} > "$CARD/front_run.log" 2>&1
+  T1=$(date +%s)
+  if [ $((T1 - T0)) -lt 6 ]; then
+    n=$(cat "$FD/autostart_fails" 2>/dev/null); n=$(( ${n:-0} + 1 )); echo $n > "$FD/autostart_fails"
+    echo "MinosFront ended after $((T1 - T0)) s (fail $n)" >> "$CARD/wrapper.log"
+    [ $n -ge 2 ] && { echo off > "$FD/autostart_failed"; echo "autostart switched off" >> "$CARD/wrapper.log"; }
+  else
+    rm -f "$FD/autostart_fails"
+  fi
+fi
+exec ${GM_CMD:-/usr/bin/gamemenu} "$@"
