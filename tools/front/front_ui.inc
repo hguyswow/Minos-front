@@ -61,9 +61,9 @@ static void chip(int x, int y, int w, const char *k, const char *v, Col vc) {
 // per-system accent and monogram
 static Col sys_color(const char *folder) {
     static const struct { const char *f; Col c; } t[] = {
-        {"arcade", {255, 184, 64, 255}}, {"_fav", {255, 210, 90, 255}}, {"_recent", {120, 230, 160, 255}}, {"md", {70, 150, 255, 255}}, {"snes", {170, 120, 255, 255}}, {"nes", {255, 92, 92, 255}},
+        {"arcade", {255, 184, 64, 255}}, {"_fav", {255, 210, 90, 255}}, {"_top", {255, 140, 190, 255}}, {"_genre", {140, 200, 255, 255}}, {"_recent", {120, 230, 160, 255}}, {"md", {70, 150, 255, 255}}, {"snes", {170, 120, 255, 255}}, {"nes", {255, 92, 92, 255}},
         {"genesis", {90, 190, 255, 255}}, {"32x", {80, 210, 200, 255}}, {"pce", {255, 140, 60, 255}}, {"gba", {150, 110, 240, 255}},
-        {"gbc", {110, 220, 120, 255}}, {"gb", {150, 200, 90, 255}}, {"_settings", {200, 205, 220, 255}}};
+        {"gbc", {110, 220, 120, 255}}, {"gb", {150, 200, 90, 255}}, {"_settings", {200, 205, 220, 255}}, {"_prefs", {120, 230, 200, 255}}};
     for (unsigned i = 0; i < sizeof t / sizeof t[0]; i++) if (!strcmp(folder, t[i].f)) return t[i].c;
     Col d = {120, 200, 190, 255}; return d;
 }
@@ -185,12 +185,13 @@ static void draw_systems(const int *show, int nshow, float curf, int cur) {
             monogram(s->label, cx, y + (int)(ch * 0.44f), (int)(116 * k), alpha(ac, fade));
             if (sel) neon_c(s->label, cx, y + (int)(ch * 0.66f), (int)(34 * k + 4), ac, cw - 24); else text_c(s->label, cx, y + (int)(ch * 0.66f), (int)(34 * k + 4), alpha(C_DIM, fade), cw - 24);
             char cnt[48];
-            if (!strcmp(s->folder, "_orig")) snprintf(cnt, sizeof cnt, "판도라 기본 화면"); else if (!strcmp(s->folder, "_settings")) snprintf(cnt, sizeof cnt, "상세 설정"); else if (!strcmp(s->folder, "_keytest")) snprintf(cnt, sizeof cnt, "버튼 신호 확인"); else snprintf(cnt, sizeof cnt, "%d개 게임", s->n);
+            if (!strcmp(s->folder, "_orig")) snprintf(cnt, sizeof cnt, "판도라 기본 화면"); else if (!strcmp(s->folder, "_settings")) snprintf(cnt, sizeof cnt, "상세 설정"); else if (!strcmp(s->folder, "_prefs")) snprintf(cnt, sizeof cnt, "언어 · 소리 · 시작"); else if (!strcmp(s->folder, "_genre")) snprintf(cnt, sizeof cnt, "장르로 골라 보기"); else if (!strcmp(s->folder, "_keytest")) snprintf(cnt, sizeof cnt, "버튼 신호 확인"); else snprintf(cnt, sizeof cnt, "%d개 게임", s->n);
             text_c(cnt, cx, y + (int)(ch * 0.83f), (int)(24 * k + 2), alpha(sel ? C_YL : C_DIM, fade), cw - 24);
         }
     int dx = 640 - nshow * 9; for (int i = 0; i < nshow; i++) { Col c = i == cur ? C_YL : alpha(C_LINE, 200); rbox(dx + i * 18, 566, i == cur ? 14 : 8, 8, 4, c); if (i == cur) dx += 6; }
     draw_footer("열기", "원래 메뉴", NULL); text("← → 기종 선택", 640, 678, 22, C_DIM, 0);
     { int lx = 430; pill(&lx, 676, "코인", lang_en ? "한국어" : "English"); }
+    if (sys[vi_rec].n) { int lx = 34; pill(&lx, 624, "C", "마지막 게임 이어하기"); }
     { rbox(574, 606, 132, 14, 7, C_YL); rbox(577, 609, 126, 8, 4, (Col){10, 4, 18, 255}); coin(540, 612, 18); if ((g_now / 600) % 2 == 0) neon_c("동전을 넣어 주세요", 640, 628, 26, C_PK, 420); }
     draw_noise(); draw_crt();
 }
@@ -225,7 +226,7 @@ static void draw_list(Sys *s, int sel, float topf, const Disp *shown, Uint32 now
     disc(px + pw - 8, py + ph + 20, 4, ((now / 500) % 2) ? C_PK : alpha(C_PK, 90));
     if (s->n) {
         text_wrap(s->title[sel], 800, 446, 29, C_YL, 434, 2, 36);
-        text_fit(s->file[sel], 800, 522, 18, C_DIM, 300);
+        { char ml[160]; meta_line(s->file[sel], ml, sizeof ml); if (ml[0]) text_fit(ml, 800, 520, 21, C_CY, 330); else text_fit(s->file[sel], 800, 522, 18, C_DIM, 300); }
         if (s->lib && fav_has(s->file[sel])) text("★ 즐겨찾기", 1140, 522, 19, C_YL, 0);
         const char *r = !strcmp(shown->stretch, "true") ? "가득 채움" : !strcmp(shown->stretch, "false") ? "원래 비율" : "가득 채움";
         const char *q = !strcmp(shown->smooth, "true") ? "부드럽게" : !strcmp(shown->smooth, "false") ? "선명하게" : "부드럽게";
@@ -258,7 +259,7 @@ static void draw_confirm(void) {
 static void draw_help(void) {
     static const char *k[] = {"Start + 코인", "Start + A", "Start + E", "Start + F", "Start + B", "Start + D", "Start + ↑ / ↓", "Start + →", "Start + ←", "Start + C", "코인 + 버튼"};
     static const char *v[] = {"게임 끝내기 (MinosFront로 돌아옴)", "지금 상태 저장", "저장한 상태 불러오기", "일시정지", "게임 리셋", "빨리감기 켜기 / 끄기",
-                              "저장 칸 번호 바꾸기", "슬로모션 (누르고 있는 동안)", "화면 캡처", "RetroArch 메뉴 (코인 2초 누르기도 가능)", "그 버튼 연사 켜기 / 끄기 (한 번 더 하면 끔)"};
+                              "저장 칸 번호 바꾸기", "소리 크게", "소리 작게", "RetroArch 메뉴 (코인 2초 누르기도 가능)", "그 버튼 연사 켜기 / 끄기 (한 번 더 하면 끔)"};
     rect(0, 0, W, H, alpha(C_BLACK, 190)); rbox(150, 24, 980, 672, 22, (Col){24, 32, 62, 255}); rbox(150, 24, 980, 6, 3, C_ACC);
     text_c("게임 중 단축키", 640, 40, 34, C_TXT, 800); text_c("Start 를 누른 채로 다른 버튼을 누릅니다   |   Start 만 4초 누르면 강제 종료", 640, 84, 20, C_DIM, 940);
     for (int i = 0; i < 11; i++) { int y = 122 + i * 46; rbox(180, y, 920, 40, 10, alpha(C_ROW, i % 2 ? 70 : 120));

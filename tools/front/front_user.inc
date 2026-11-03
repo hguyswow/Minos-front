@@ -10,6 +10,8 @@ static int ld_lines(const char *name, char **a, int max) {
     fclose(f); return n;
 }
 static int test_mode(void) { return getenv("MINOS_KEYS") || getenv("MINOS_SNAP"); }   // headless tests must never change the card
+// Pandory's menu music (mplayer) keeps the sound device busy: stop it so games get sound and the front is quiet.
+static void kill_music(void) { if (test_mode()) return; system("killall mplayer >/dev/null 2>&1; sleep 0.3; killall -9 mplayer >/dev/null 2>&1"); }
 static FILE *tmp_open(const char *name, char *t, size_t tn) { if (test_mode()) return NULL; char p[400]; upath(p, sizeof p, name); snprintf(t, tn, "%s.tmp", p); return fopen(t, "w"); }
 static void tmp_done(FILE *f, const char *name, const char *t) { char p[400]; upath(p, sizeof p, name); fflush(f); fclose(f); if (rename(t, p) != 0) LOG("rename %s failed", name); }
 
@@ -29,10 +31,13 @@ static void fav_toggle(const char *f) {
     if (i >= 0) { free(favs[i]); memmove(favs + i, favs + i + 1, (size_t)(nfav - i - 1) * sizeof(char *)); nfav--; } else put_front(favs, &nfav, MAXFAV, f);
     lines_save("favorites.txt", favs, nfav);
 }
-static void recent_push(const char *f) { put_front(recent, &nrecent, MAXREC, f); lines_save("recent.txt", recent, nrecent); }
+#include "front_plays.inc"
+static void recent_push(const char *f) { put_front(recent, &nrecent, MAXREC, f); lines_save("recent.txt", recent, nrecent); plays_inc(f); }
 
 // per-game screen overrides
 typedef struct { char file[120]; char stretch[8], smooth[8], resume[8]; } GS;
+static int idle_sec = 120;   // front.cfg idle=SECONDS (0 = off)
+static int game_vol = 0;   // front.cfg game_vol= : RetroArch gain in dB for every game
 static int resume_def = 1;   // front.cfg: resume=0 turns the automatic resume off
 static GS gsv[2000]; static int ngs;
 static GS *gs_find(const char *f) { for (int i = 0; i < ngs; i++) if (!strcmp(gsv[i].file, f)) return &gsv[i]; return NULL; }
@@ -107,10 +112,10 @@ static void fill_virtual(int vi, char **names, int cnt) {
             if (f >= 0) { int j = v->n++; v->file[j] = s->file[f]; v->title[j] = s->title[f]; v->gcore[j] = s->gcore[f]; v->fold[j] = s->folder; break; }
         }
 }
-static void refill_virtual(void) { fill_virtual(vi_fav, favs, nfav); fill_virtual(vi_rec, recent, nrecent); }
+static void refill_virtual(void) { fill_virtual(vi_fav, favs, nfav); fill_virtual(vi_rec, recent, nrecent); char *tn[40]; int tc = plays_top(tn, 40); fill_virtual(vi_top, tn, tc); }
 static void rebuild_show(int *show, int *nshow, int *cur) {
     int keep = *nshow ? show[*cur] : -1; *nshow = 0;
-    for (int i = 0; i < nsys; i++) if (sys[i].n > 0 || !strcmp(sys[i].folder, "_settings") || !strcmp(sys[i].folder, "_keytest") || !strcmp(sys[i].folder, "_orig")) show[(*nshow)++] = i;
+    for (int i = 0; i < nsys; i++) if (sys[i].n > 0 || !strcmp(sys[i].folder, "_settings") || !strcmp(sys[i].folder, "_prefs") || !strcmp(sys[i].folder, "_genre") || !strcmp(sys[i].folder, "_keytest") || !strcmp(sys[i].folder, "_orig")) show[(*nshow)++] = i;
     *cur = 0; for (int j = 0; j < *nshow; j++) if (show[j] == keep) *cur = j;
 }
 
@@ -157,6 +162,58 @@ static int copy_file(const char *from, const char *to) {
     char buf[8192]; size_t n; int ok = 1; while ((n = fread(buf, 1, sizeof buf, i)) > 0) if (fwrite(buf, 1, n, o) != n) ok = 0; fclose(i); fflush(o); fclose(o);
     if (!ok) { remove(t); return 0; } return rename(t, to) == 0;
 }
+// One-generation backup of the user files: copied at every start; a file that is missing or empty is restored from the copy.
+static void copy_raw(const char *from, const char *to) {
+    FILE *a = fopen(from, "rb"); if (!a) return; FILE *b = fopen(to, "wb"); if (!b) { fclose(a); return; }
+    char buf[4096]; size_t n; while ((n = fread(buf, 1, sizeof buf, a)) > 0) fwrite(buf, 1, n, b); fclose(a); fclose(b);
+}
+static void backup_user(void) {
+    if (test_mode()) return;
+    static const char *names[] = { "favorites.txt", "recent.txt", "last.cfg", "game_settings.tsv", "keymaps.tsv", "lang.txt", "front.cfg", "plays.tsv" };
+    char dir[400]; upath(dir, sizeof dir, "backup"); mkdir(dir, 0755);
+    for (unsigned i = 0; i < sizeof names / sizeof *names; i++) {
+        char src[400], bak[420]; upath(src, sizeof src, names[i]); snprintf(bak, sizeof bak, "%s/%s", dir, names[i]);
+        struct stat s, b;
+        if (stat(src, &s) == 0 && s.st_size > 0) copy_raw(src, bak);
+        else if (stat(bak, &b) == 0 && b.st_size > 0) { LOG("restoring %s from backup", names[i]); copy_raw(bak, src); }
+    }
+}
+static void crash_exit(int sig) { (void)sig; _exit(70); }
+
+// Game info (year / maker / genre) from pandory/meta.tsv, made by tools/build_meta.py.
+typedef struct { char *file, *year, *maker, *genre; } Meta;
+static Meta *metas; static int nmeta;
+static void meta_load(void) {
+    char p[400]; snprintf(p, sizeof p, "%s/pandory/meta.tsv", card); FILE *f = fopen(p, "r"); if (!f) return;
+    fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET); if (sz <= 0 || sz > 4 * 1024 * 1024) { fclose(f); return; }
+    char *buf = malloc((size_t)sz + 1); size_t r = fread(buf, 1, (size_t)sz, f); fclose(f); buf[r] = 0;
+    int cap = 0; for (char *q = buf; *q; q++) if (*q == '\n') cap++;
+    metas = calloc((size_t)cap + 1, sizeof(Meta));
+    for (char *q = buf; *q; ) {
+        char *nl = strchr(q, '\n'); if (nl) *nl = 0;
+        char *c[4] = {q, "", "", ""}; int nc = 1;
+        for (char *t2 = q; *t2 && nc < 4; t2++) if (*t2 == '\t') { *t2 = 0; c[nc++] = t2 + 1; }
+        if (nc >= 2) { Meta *m = &metas[nmeta++]; m->file = strdup(c[0]); m->year = strdup(c[1]); m->maker = strdup(c[2]); m->genre = strdup(c[3]); }
+        if (!nl) break; q = nl + 1;
+    }
+    free(buf); LOG("meta: %d games", nmeta);
+}
+static Meta *meta_find(const char *file) { for (int i = 0; i < nmeta; i++) if (!strcmp(metas[i].file, file)) return &metas[i]; return NULL; }
+// "1990 · Capcom · 슈팅" (genre in Korean while the UI is Korean)
+static const char *genre_ko(const char *g) {
+    static const char *tb[][2] = { {"Shooter", "슈팅"}, {"Fighter", "대전 격투"}, {"Fighting", "대전 격투"}, {"Platform", "플랫폼 액션"}, {"Action", "액션"}, {"Beat'em Up", "벨트스크롤 액션"}, {"Puzzle", "퍼즐"},
+        {"Driving", "레이싱"}, {"Racing", "레이싱"}, {"Sports", "스포츠"}, {"Maze", "미로"}, {"Ball & Paddle", "벽돌깨기"}, {"Climbing", "클라이밍"}, {"Mahjong", "마작"}, {"Quiz", "퀴즈"},
+        {"RPG", "롤플레잉"}, {"Role-Playing", "롤플레잉"}, {"Adventure", "어드벤처"}, {"Strategy", "전략"}, {"Simulation", "시뮬레이션"}, {"Compilation", "모음집"}, {"Casino", "카지노"},
+        {"Board Game", "보드 게임"}, {"Tabletop", "테이블"}, {"Rhythm", "리듬"}, {"Misc.", "기타"}, {"Educational", "교육"}, {"Fishing", "낚시"} };
+    for (unsigned i = 0; i < sizeof tb / sizeof *tb; i++) if (!strcasecmp(g, tb[i][0])) return tb[i][1];
+    return g;
+}
+static void meta_line(const char *file, char *out, size_t n) {
+    out[0] = 0; Meta *m = meta_find(file); if (!m) return;
+    const char *g = (m->genre[0] && !lang_en) ? genre_ko(m->genre) : m->genre;
+    snprintf(out, n, "%s%s%s%s%s", m->year, (m->year[0] && (m->maker[0] || g[0])) ? "  ·  " : "", m->maker, (m->maker[0] && g[0]) ? "  ·  " : "", g);
+}
+
 static void protect_cfg(void) {
     if (test_mode()) return;
     char c[320], g[330]; snprintf(c, sizeof c, "%s/pandory/ra/ra.cfg", card); snprintf(g, sizeof g, "%s.good", c);

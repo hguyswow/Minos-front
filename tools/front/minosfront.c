@@ -3,6 +3,8 @@
 // Usage: minosfront CARD_ROOT [auto_exit_seconds]
 #include <SDL.h>
 #include <dirent.h>
+#include <signal.h>
+#include <sys/ioctl.h>
 #include <strings.h>
 #include <dlfcn.h>
 #include <stdarg.h>
@@ -337,6 +339,7 @@ static void video_down(void) {
 
 #include "front_user.inc"
 #include "front_keys.inc"
+#include "front_bezel.inc"
 
 // Plays the game with our own RetroArch 1.22.2 (pandory/ra/retroarch, config pandory/ra/ra.cfg).
 // The screen ratio / smoothing come from pandory.xml (game > system > global), the same file the PC editor writes.
@@ -361,12 +364,15 @@ static int launch_ra(Sys *s, int gi) {
     Disp d; xml_display(xml, fd, s->file[gi], &d); apply_gs(s->file[gi], &d);
     LOG("ra: %s/%s stretch='%s' smooth='%s'", fd, s->file[gi], d.stretch, d.smooth);
     write_ra_override(ovr, &d, ra_skip_ratio);
+    if (!strcmp(d.stretch, "false")) bezel_apply(ovr, s->file[gi], fd);          // a screen frame for games shown at their own ratio
     { char lay[340];
       snprintf(lay, sizeof lay, "%s/pandory/ra/layouts/_all.cfg", card); append_file(ovr, lay);                   // overrides for every game (e.g. video driver)
       snprintf(lay, sizeof lay, "%s/pandory/ra/layouts/%s.cfg", card, fd); append_file(ovr, lay); }
+    { FILE *vf = fopen(ovr, "a"); if (vf) { fprintf(vf, "audio_volume = \"%d.000000\"\n", game_vol); fclose(vf); } }
     { GS *g = gs_find(s->file[gi]); int rs = resume_def; if (g && g->resume[0]) rs = !strcmp(g->resume, "true"); FILE *rf = fopen(ovr, "a");
       if (rf) { fprintf(rf, "savestate_auto_save = \"%s\"\nsavestate_auto_load = \"%s\"\n", rs ? "true" : "false", rs ? "true" : "false"); fclose(rf); } }
     { char gk[320]; BtnInfo *bb = bi_find(s->file[gi]); group_key(bb, fd, gk, sizeof gk); const char *sp = km_resolve(s->file[gi], gk, NULL); if (sp) km_apply(ovr, sp, corepath, s->file[gi]); }        // per-system button layout
+    kill_music();
     video_down();
     pid_t pid = fork();
     if (pid == 0) {
@@ -381,24 +387,43 @@ static int launch_ra(Sys *s, int gi) {
 }
 
 #include "front_ui.inc"
+#include "front_prefs.inc"
+#include "front_extra.inc"
+
+// Safe mode check (run by auto.sh before MinosFront starts): exit code 0 when the B button is held (now or within ~1 s), 1 otherwise.
+static int keycheck(void) {
+    int fd[8], nfd = 0; char dp[40];
+    for (int i = 0; i < 8; i++) { snprintf(dp, sizeof dp, "/dev/input/event%d", i); int f = open(dp, O_RDONLY | O_NONBLOCK); if (f >= 0) fd[nfd++] = f; }
+    for (int it = 0; it < 20; it++) {
+        for (int k = 0; k < nfd; k++) {
+            unsigned char bits[96]; memset(bits, 0, sizeof bits);
+            if (ioctl(fd[k], (2u << 30) | (96u << 16) | ('E' << 8) | 0x18, bits) >= 0 && (bits[48 / 8] & (1 << (48 % 8)))) return 0;   // EVIOCGKEY, KEY_B = 48
+        }
+        usleep(50000);
+    }
+    return 1;
+}
 
 int main(int argc, char **argv) {
+    if (argc > 1 && !strcmp(argv[1], "--keycheck")) return keycheck();
     snprintf(card, sizeof card, "%s", argc > 1 ? argv[1] : "/mnt/sdcard");
     int autoexit = argc > 2 ? atoi(argv[2]) : 0;
     char lp[300]; snprintf(lp, sizeof lp, "%s/front.log", card); lg = fopen(lp, "w");
     LOG("minosfront start card=%s", card);
+    kill_music();
+    signal(SIGSEGV, crash_exit); signal(SIGABRT, crash_exit); signal(SIGBUS, crash_exit);
     char fp[300]; snprintf(fp, sizeof fp, "%s/pandory/front/NanumGothic.ttf", card);
     FILE *ff = fopen(fp, "rb"); if (!ff) { LOG("font missing: %s", fp); return 2; }
     fseek(ff, 0, SEEK_END); long fs = ftell(ff); fseek(ff, 0, SEEK_SET); fontdata = malloc(fs); fread(fontdata, 1, fs, ff); fclose(ff);
     if (!stbtt_InitFont(&font, fontdata, stbtt_GetFontOffsetForIndex(fontdata, 0))) { LOG("font init failed"); return 3; }
     { char cp[300]; snprintf(cp, sizeof cp, "%s/pandory/front/front.cfg", card); FILE *cf = fopen(cp, "r");
-      if (cf) { char l[200]; while (fgets(l, sizeof l, cf)) { if (!strncmp(l, "stretch=1", 9)) stretch = 1; if (!strncmp(l, "player=builtin", 14)) use_ra = 0; if (!strncmp(l, "ratio=off", 9)) ra_skip_ratio = 1; if (!strncmp(l, "quit_hold=", 10)) quit_hold = atoi(l + 10); if (!strncmp(l, "resume=", 7)) resume_def = atoi(l + 7); } fclose(cf); }
+      if (cf) { char l[200]; while (fgets(l, sizeof l, cf)) { if (!strncmp(l, "stretch=1", 9)) stretch = 1; if (!strncmp(l, "player=builtin", 14)) use_ra = 0; if (!strncmp(l, "ratio=off", 9)) ra_skip_ratio = 1; if (!strncmp(l, "quit_hold=", 10)) quit_hold = atoi(l + 10); if (!strncmp(l, "resume=", 7)) resume_def = atoi(l + 7); if (!strncmp(l, "game_vol=", 9)) game_vol = atoi(l + 9); if (!strncmp(l, "bezel=", 6)) bezel_on = atoi(l + 6); if (!strncmp(l, "idle=", 5)) idle_sec = atoi(l + 5); } fclose(cf); }
       LOG("stretch=%d", stretch); }
-    make_virtual("_recent", "최근 한 게임", &vi_rec); make_virtual("_fav", "즐겨찾기", &vi_fav);
-    load_library(); default_sys(); scan();
-    nfav = ld_lines("favorites.txt", favs, MAXFAV); nrecent = ld_lines("recent.txt", recent, MAXREC); gs_load(); pos_load(); refill_virtual(); protect_cfg(); { const char *ml = getenv("MINOS_LANG"); if (ml && *ml ? strcmp(ml, "ko") != 0 : lang_load()) set_lang(1); }
-    if (nsys < MAXSYS) { Sys *st = &sys[nsys++]; memset(st, 0, sizeof *st); snprintf(st->folder, sizeof st->folder, "_settings"); snprintf(st->label, sizeof st->label, "RetroArch 설정"); }
-    if (nsys < MAXSYS) { Sys *st = &sys[nsys++]; memset(st, 0, sizeof *st); snprintf(st->folder, sizeof st->folder, "_keytest"); snprintf(st->label, sizeof st->label, "버튼 테스트"); }
+    make_virtual("_recent", "최근 한 게임", &vi_rec); make_virtual("_fav", "즐겨찾기", &vi_fav); make_virtual("_top", "자주 한 게임", &vi_top);
+    backup_user(); meta_load(); bezel_load(); load_library(); default_sys(); scan();
+    nfav = ld_lines("favorites.txt", favs, MAXFAV); nrecent = ld_lines("recent.txt", recent, MAXREC); plays_load(); gs_load(); pos_load(); refill_virtual(); genres_build(); protect_cfg(); { const char *ml = getenv("MINOS_LANG"); if (ml && *ml ? strcmp(ml, "ko") != 0 : lang_load()) set_lang(1); }
+    make_virtual("_genre", "장르별 찾기", &vi_genre);
+    if (nsys < MAXSYS) { Sys *st = &sys[nsys++]; memset(st, 0, sizeof *st); snprintf(st->folder, sizeof st->folder, "_prefs"); snprintf(st->label, sizeof st->label, "프론트 설정"); }
     if (nsys < MAXSYS) { Sys *st = &sys[nsys++]; memset(st, 0, sizeof *st); snprintf(st->folder, sizeof st->folder, "_orig"); snprintf(st->label, sizeof st->label, "원래 메뉴"); }
     int show[MAXSYS], nshow = 0, cur0 = 0; rebuild_show(show, &nshow, &cur0);
     { int first = 0; for (int j = 0; j < nshow; j++) if (sys[show[j]].folder[0] != '_') { first = j; break; } cur0 = first;
@@ -410,6 +435,10 @@ int main(int argc, char **argv) {
 
     const char *sp = getenv("MINOS_SPLASH"); if (sp && !*sp) sp = NULL;
     if (!test_mode() || sp) {
+        if (sp && !strcmp(sp, "seq")) {                                   // test: dump the whole splash as a frame sequence (24 fps) for the boot video
+            for (int fr = 0; fr * 1000 / 24 <= SPLASH_MS; fr++) { draw_splash((Uint32)(fr * 1000 / 24)); SDL_Surface *sf = SDL_CreateRGBSurfaceWithFormat(0, W, H, 32, SDL_PIXELFORMAT_ARGB8888); SDL_RenderReadPixels(R, NULL, SDL_PIXELFORMAT_ARGB8888, sf->pixels, sf->pitch);
+                char bp[400]; snprintf(bp, sizeof bp, "%s/seq_%04d.bmp", getenv("MINOS_SNAP"), fr); SDL_SaveBMP(sf, bp); SDL_FreeSurface(sf); }
+            return 0; }
         if (sp) { Uint32 tt = (Uint32)atoi(sp); draw_splash(tt); SDL_Surface *sf = SDL_CreateRGBSurfaceWithFormat(0, W, H, 32, SDL_PIXELFORMAT_ARGB8888); SDL_RenderReadPixels(R, NULL, SDL_PIXELFORMAT_ARGB8888, sf->pixels, sf->pitch);
             char bp[400]; snprintf(bp, sizeof bp, "%s/splash.bmp", getenv("MINOS_SNAP")); SDL_SaveBMP(sf, bp); SDL_FreeSurface(sf); return 0; }
         Uint32 st = SDL_GetTicks(); int skip = 0; SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
@@ -418,17 +447,24 @@ int main(int argc, char **argv) {
     }
     int help = 0, gsm = 0, gsrow = 0, gsval[3] = {0, 0, 0}, mode = 0, cur = cur0, sel = 0, top = 0, confirm = 0;
     int lastcur = -1, lastsel = -1; Uint32 pvchg = 0; Disp shown; memset(&shown, 0, sizeof shown);   // cached per-game display options for the info panel
-    Uint32 t0 = SDL_GetTicks(); int quit = 0;
+    Uint32 t0 = SDL_GetTicks(); int quit = 0; Uint32 last_in = t0; int idling = 0;
     while (!quit) {
         if (autoexit && SDL_GetTicks() - t0 > (Uint32)autoexit * 1000) break;
         static const char *inj; static int injinit, injwait;   // test only: MINOS_KEYS="RRAD..." injects one key per frame (R L U N=down A B C D E F I S=start)
         if (!injinit) { inj = getenv("MINOS_KEYS"); injinit = 1; }
         if (inj && *inj) { static const char *ks = "RLUNABCDEFIS"; static const int sc[] = {SDL_SCANCODE_RIGHT, SDL_SCANCODE_LEFT, SDL_SCANCODE_UP, SDL_SCANCODE_DOWN, SDL_SCANCODE_A, SDL_SCANCODE_B, SDL_SCANCODE_C, SDL_SCANCODE_D, SDL_SCANCODE_E, SDL_SCANCODE_F, SDL_SCANCODE_I, SDL_SCANCODE_1};
             const char *q = strchr(ks, *inj++); if (q) { SDL_Event ev; memset(&ev, 0, sizeof ev); ev.type = SDL_KEYDOWN; ev.key.keysym.scancode = sc[q - ks]; SDL_PushEvent(&ev); } SDL_Delay(30); }
+        { Uint32 nw = SDL_GetTicks(), ref = last_in > t0 ? last_in : t0; idling = idle_sec > 0 && !inj && !snapdir && (mode == 0 || mode == 1) && !help && !gsm && !confirm && nw - ref > (Uint32)idle_sec * 1000; if (getenv("MINOS_IDLE")) idling = 1; }
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) quit = 1;
+            if (e.type == SDL_KEYDOWN || e.type == SDL_JOYBUTTONDOWN) { last_in = SDL_GetTicks(); if (idling) { idling = 0; continue; } }
             if (mode == 2) { kt_event(&e); continue; }
+            if (mode == 4) { if (e.type == SDL_KEYDOWN) { int pr = prefs_key(e.key.keysym.scancode);
+                if (pr == 1) { mode = 0; lastcur = -1; }
+                else if (pr == 2) { if (!launch_ra_menu()) quit = 1; t0 = SDL_GetTicks(); SDL_PumpEvents(); SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT); }
+                else if (pr == 3) { kt_open(); mode = 2; } } continue; }
+            if (mode == 5) { if (e.type == SDL_KEYDOWN) { int gr = genre_key(e.key.keysym.scancode); if (gr == 1) { mode = 0; lastcur = -1; } else if (gr == 2) { mode = 1; sel = 0; top = 0; lastcur = -1; } } continue; }
             if (mode == 3) { if (e.type == SDL_KEYDOWN && ed_key(e.key.keysym.scancode)) { mode = 1; lastcur = -1; } continue; }
             if (e.type != SDL_KEYDOWN) continue;
             int k = e.key.keysym.scancode; Sys *s = nshow ? &sys[show[cur]] : NULL;
@@ -449,9 +485,15 @@ int main(int argc, char **argv) {
                 else if (k == SDL_SCANCODE_A && nshow) {
                     if (!strcmp(s->folder, "_orig")) quit = 1;
                     else if (!strcmp(s->folder, "_keytest")) { kt_open(); mode = 2; }
+                    else if (!strcmp(s->folder, "_prefs")) { prefs_open(); mode = 4; }
+                    else if (!strcmp(s->folder, "_genre")) { mode = 5; lastcur = -1; }
                     else if (!strcmp(s->folder, "_settings")) { if (!launch_ra_menu()) quit = 1; t0 = SDL_GetTicks(); SDL_PumpEvents(); SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT); }
                     else { mode = 1; sel = s->folder[0] == '_' ? 0 : pos_get(s->folder); if (sel >= s->n) sel = 0; if (getenv("MINOS_GAME")) for (int q = 0; q < s->n; q++) if (!strcmp(s->file[q], getenv("MINOS_GAME"))) sel = q; top = sel > 4 ? sel - 4 : 0; lastcur = -1; } }
                 else if (k == SDL_SCANCODE_I) { set_lang(!lang_en); lang_save(); }
+                else if (k == SDL_SCANCODE_C && sys[vi_rec].n) {                                  // C on the system screen: continue the most recent game
+                    Sys *rs = &sys[vi_rec]; recent_push(rs->file[0]); pos_save();
+                    if (!launch_ra(rs, 0)) quit = 1;
+                    refill_virtual(); t0 = SDL_GetTicks(); SDL_PumpEvents(); SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT); lastcur = -1; preview_free(); }
                 else if (k == SDL_SCANCODE_B || k == SDL_SCANCODE_1) confirm = 1;
             } else {
                 if (k == SDL_SCANCODE_DOWN && s->n) sel = (sel + 1) % s->n;
@@ -488,6 +530,9 @@ int main(int argc, char **argv) {
           curf += dc * 0.35f; if (fabsf(dc) < 0.02f) curf = (float)cur; if (curf < 0) curf += nshow; if (curf >= nshow) curf -= nshow;
           topf += ((float)top - topf) * 0.4f; if (fabsf((float)top - topf) < 0.02f) topf = (float)top; }
         if (!nshow) { draw_background(); draw_topbar(""); text("게임이 없습니다 (roms_pandory 폴더를 확인하세요)", 60, 300, 36, C_TXT, 0); }
+        else if (idling) draw_idle(now);
+        else if (mode == 5) draw_genres();
+        else if (mode == 4) draw_prefs();
         else if (mode == 3) draw_editor();
         else if (mode == 2) {
             static Uint32 kh; const Uint8 *kbs = SDL_GetKeyboardState(NULL);

@@ -17,10 +17,13 @@ rd32() { # address -> decimal value of the 32-bit little-endian word
   echo $(( (0$4 << 24) + (0$3 << 16) + (0$2 << 8) + 0$1 ))
 }
 OLD=$(findgm)
+# safe mode: holding the B button while the system starts skips MinosFront (the stock menu comes up)
+SAFE=0; ${KEYCHECK_CMD:-/lib/ld-linux-armhf.so.3 --library-path /usr/lib:/lib $CARD/pandory/bin/minosfront --keycheck} && SAFE=1
+[ "$SAFE" = 1 ] && echo "B held -> safe mode: MinosFront skipped"
 echo "start old=$OLD $(date)"
 if [ -f /tmp/front_skip ]; then
   rm -f /tmp/front_skip; echo "skip flag found: normal menu this time"
-elif [ -f "$FD/autostart" ] && [ ! -f "$FD/autostart_failed" ]; then
+elif [ -f "$FD/autostart" ] && [ ! -f "$FD/autostart_failed" ] && [ "$SAFE" != 1 ]; then
   i=0; P=""
   while [ $i -lt 60 ]; do
     P=$(findgm)

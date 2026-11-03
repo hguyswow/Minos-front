@@ -7,7 +7,9 @@
 CARD=${CARD:-/mnt/sdcard}
 FD="$CARD/pandory/front"
 echo "wrapper $(date) args: $*" >> "$CARD/wrapper.log"
-if [ -f "$FD/autostart" ] && [ ! -f "$FD/autostart_failed" ]; then
+SAFE=0; ${KEYCHECK_CMD:-/lib/ld-linux-armhf.so.3 --library-path /usr/lib:/lib $CARD/pandory/bin/minosfront --keycheck} && SAFE=1   # B held at start = safe mode
+[ "$SAFE" = 1 ] && echo "B held -> safe mode" >> "$CARD/wrapper.log"
+if [ -f "$FD/autostart" ] && [ ! -f "$FD/autostart_failed" ] && [ "$SAFE" != 1 ]; then
   T0=$(date +%s)
   export XDG_RUNTIME_DIR=/data XDG_CONFIG_HOME=/data
   ${FRONT_CMD:-/lib/ld-linux-armhf.so.3 --library-path /usr/lib:/lib $CARD/pandory/bin/minosfront $CARD} > "$CARD/front_run.log" 2>&1

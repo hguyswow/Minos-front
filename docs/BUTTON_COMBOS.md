@@ -21,8 +21,8 @@
 | Start + B | 게임 리셋 |
 | Start + D | 빨리감기 켜기/끄기 |
 | Start + 위 / 아래 | 저장 칸 번호 올리기 / 내리기 |
-| Start + 오른쪽 | 슬로모션 (누르고 있는 동안) |
-| Start + 왼쪽 | 화면 캡처 |
+| Start + 오른쪽 | 소리 크게 |
+| Start + 왼쪽 | 소리 작게 |
 | Start + C | RetroArch 메뉴 (확인 필요). 코인 2초 누르기(RetroArch 설정)도 가능 |
 | 코인 + 버튼 | 그 버튼 연사 켜기/끄기 (RetroArch Turbo "Classic Toggle", 기기에서 확인됨) |
 | Start 만 4초 | MinosFront 에서 실행한 RetroArch 강제 종료 (메뉴에 갇혔을 때) |
