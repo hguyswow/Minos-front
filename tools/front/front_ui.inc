@@ -191,6 +191,7 @@ static void draw_systems(const int *show, int nshow, float curf, int cur) {
     int dx = 640 - nshow * 9; for (int i = 0; i < nshow; i++) { Col c = i == cur ? C_YL : alpha(C_LINE, 200); rbox(dx + i * 18, 566, i == cur ? 14 : 8, 8, 4, c); if (i == cur) dx += 6; }
     draw_footer("열기", "원래 메뉴", NULL); text("← → 기종 선택", 640, 678, 22, C_DIM, 0);
     { int lx = 430; pill(&lx, 676, "코인", lang_en ? "한국어" : "English"); }
+    { int lx = 900; pill(&lx, 676, "D", "아무 게임"); }
     if (sys[vi_rec].n) { int lx = 34; pill(&lx, 624, "C", "마지막 게임 이어하기"); }
     { rbox(574, 606, 132, 14, 7, C_YL); rbox(577, 609, 126, 8, 4, (Col){10, 4, 18, 255}); coin(540, 612, 18); if ((g_now / 600) % 2 == 0) neon_c("동전을 넣어 주세요", 640, 628, 26, C_PK, 420); }
     draw_noise(); draw_crt();
@@ -233,6 +234,7 @@ static void draw_list(Sys *s, int sel, float topf, const Disp *shown, Uint32 now
         { const char *r2 = !strcmp(shown->stretch, "false") ? "원래" : "가득"; const char *q2 = !strcmp(shown->smooth, "false") ? "선명" : "부드럽게"; const char *k2 = !strcmp(g_keystat, "순정") ? "순정" : "내 배치";
           chip(800, 552, 140, "비율", r2, C_CY); chip(950, 552, 150, "화질", q2, C_CY); chip(1110, 552, 130, "버튼", k2, !strcmp(g_keystat, "순정") ? C_CY : C_YL); }
         text("C 즐겨찾기   D 다음 글자   코인 게임별 설정", 800, 600, 20, C_DIM, 0);
+        { char pi[100]; plays_info(s->file[sel], pi, sizeof pi); if (pi[0]) text(pi, 800, 628, 19, C_CY, 0); }
     }
     draw_footer("실행", "뒤로", "100개씩"); text("← → 10개씩", 455, 678, 22, C_DIM, 0);
     { int hx = 660; pill(&hx, 676, "Start", "게임 중 단축키"); }
@@ -241,15 +243,16 @@ static void draw_list(Sys *s, int sel, float topf, const Disp *shown, Uint32 now
 
 static void draw_gsm(const char *title, const int *v, int row) {
     static const char *a[] = {"기본 (가득 채움)", "가득 채움", "원래 비율"}, *b[] = {"기본 (부드럽게)", "부드럽게", "선명하게"}, *c[] = {"기본 (켬)", "켬", "끔"};
-    rect(0, 0, W, H, alpha(C_BLACK, 190)); rbox(290, 70, 700, 580, 22, (Col){24, 32, 62, 255}); rbox(290, 70, 700, 6, 3, C_ACC);
-    text_c("이 게임 설정", 640, 90, 34, C_TXT, 620); text_c(title, 640, 138, 22, C_DIM, 620);
-    const char *lab[] = {"화면 비율", "화질", "이어하기", "버튼 배치"}; const char **opt[] = {a, b, c, NULL};
-    for (int i = 0; i < 4; i++) { int y = 190 + i * 84; rbox(330, y, 620, 66, 12, i == row ? C_ROW : alpha(C_ROW, 90));
-        text(lab[i], 360, y + 17, 28, i == row ? C_TXT : C_DIM, 0); char t[96];
-        if (i < 3) snprintf(t, sizeof t, "← %s →", opt[i][v[i]]); else snprintf(t, sizeof t, "%s   (A 눌러 편집)", g_keystat);
-        int w = text_w(t, i < 3 ? 28 : 22); text(t, 920 - w, y + (i < 3 ? 17 : 21), i < 3 ? 28 : 22, i == row ? C_ACC : C_DIM, 0); }
-    text_c("이어하기: 끝낼 때 자동 저장, 다시 실행하면 그 자리에서 시작", 640, 540, 20, C_DIM, 640);
-    text_c("↑ ↓ 항목    ← → 바꾸기    A 저장하고 닫기 / 편집", 640, 590, 22, C_DIM, 620);
+    rect(0, 0, W, H, alpha(C_BLACK, 190)); rbox(290, 40, 700, 640, 22, (Col){24, 32, 62, 255}); rbox(290, 40, 700, 6, 3, C_ACC);
+    text_c("이 게임 설정", 640, 58, 34, C_TXT, 620); text_c(title, 640, 104, 22, C_DIM, 620);
+    const char *lab[] = {"화면 비율", "화질", "이어하기", "화면 테두리", "버튼 배치"}; const char **opt[] = {a, b, c, NULL, NULL};
+    for (int i = 0; i < 5; i++) { int y = 140 + i * 78; rbox(330, y, 620, 64, 12, i == row ? C_ROW : alpha(C_ROW, 90));
+        text(lab[i], 360, y + 16, 28, i == row ? C_TXT : C_DIM, 0); char t[96];
+        if (i < 3) snprintf(t, sizeof t, "← %s →", opt[i][v[i]]); else if (i == 3) snprintf(t, sizeof t, "← %s →", v[3] ? tr(bezel_name[v[3] - 1]) : tr("기본 (설정값 따라감)")); else snprintf(t, sizeof t, "%s   (A 눌러 편집)", g_keystat);
+        int w = text_w(t, i < 3 ? 28 : i == 3 ? 26 : 22); text(t, 920 - w, y + (i < 4 ? 16 : 20), i < 4 ? (i == 3 ? 26 : 28) : 22, i == row ? C_ACC : C_DIM, 0); }
+    text_c("이어하기: 끝낼 때 자동 저장, 다시 실행하면 그 자리에서 시작", 640, 548, 20, C_DIM, 640);
+    text_c("화면 테두리는 '원래 비율' 게임에만 보입니다", 640, 578, 20, C_DIM, 640);
+    text_c("↑ ↓ 항목    ← → 바꾸기    A 저장하고 닫기 / 편집", 640, 628, 22, C_DIM, 620);
 }
 static void draw_confirm(void) {
     rect(0, 0, W, H, alpha(C_BLACK, 170)); rbox(400, 270, 480, 170, 20, (Col){26, 34, 64, 255}); rbox(400, 270, 480, 6, 3, C_ACC);

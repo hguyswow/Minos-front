@@ -364,7 +364,7 @@ static int launch_ra(Sys *s, int gi) {
     Disp d; xml_display(xml, fd, s->file[gi], &d); apply_gs(s->file[gi], &d);
     LOG("ra: %s/%s stretch='%s' smooth='%s'", fd, s->file[gi], d.stretch, d.smooth);
     write_ra_override(ovr, &d, ra_skip_ratio);
-    if (!strcmp(d.stretch, "false")) bezel_apply(ovr, s->file[gi], fd);          // a screen frame for games shown at their own ratio
+    if (!strcmp(d.stretch, "false")) { GS *g0 = gs_find(s->file[gi]); bezel_apply(ovr, s->file[gi], fd, (g0 && g0->bezel[0]) ? g0->bezel[0] - '0' : -1); }          // a screen frame for games shown at their own ratio
     { char lay[340];
       snprintf(lay, sizeof lay, "%s/pandory/ra/layouts/_all.cfg", card); append_file(ovr, lay);                   // overrides for every game (e.g. video driver)
       snprintf(lay, sizeof lay, "%s/pandory/ra/layouts/%s.cfg", card, fd); append_file(ovr, lay); }
@@ -374,6 +374,7 @@ static int launch_ra(Sys *s, int gi) {
     { char gk[320]; BtnInfo *bb = bi_find(s->file[gi]); group_key(bb, fd, gk, sizeof gk); const char *sp = km_resolve(s->file[gi], gk, NULL); if (sp) km_apply(ovr, sp, corepath, s->file[gi]); }        // per-system button layout
     kill_music();
     video_down();
+    double t_run = now_s();
     pid_t pid = fork();
     if (pid == 0) {
         setenv("HOME", home, 1); setenv("XDG_CONFIG_HOME", home, 1); setenv("XDG_RUNTIME_DIR", "/data", 1);
@@ -383,10 +384,12 @@ static int launch_ra(Sys *s, int gi) {
         execv("/lib/ld-linux-armhf.so.3", argv); _exit(127);
     }
     if (pid > 0) wait_ra(pid); else LOG("fork failed");
+    { int el = (int)(now_s() - t_run); if (pid > 0 && el >= 10 && s->lib) plays_add_time(s->file[gi], el); }          // play time for the info panel
     return video_up();
 }
 
 #include "front_ui.inc"
+#include "front_health.inc"
 #include "front_prefs.inc"
 #include "front_extra.inc"
 
@@ -410,7 +413,7 @@ int main(int argc, char **argv) {
     int autoexit = argc > 2 ? atoi(argv[2]) : 0;
     char lp[300]; snprintf(lp, sizeof lp, "%s/front.log", card); lg = fopen(lp, "w");
     LOG("minosfront start card=%s", card);
-    kill_music();
+    kill_music(); clock_restore();
     signal(SIGSEGV, crash_exit); signal(SIGABRT, crash_exit); signal(SIGBUS, crash_exit);
     char fp[300]; snprintf(fp, sizeof fp, "%s/pandory/front/NanumGothic.ttf", card);
     FILE *ff = fopen(fp, "rb"); if (!ff) { LOG("font missing: %s", fp); return 2; }
@@ -445,9 +448,10 @@ int main(int argc, char **argv) {
         while (!skip && SDL_GetTicks() - st < SPLASH_MS) { SDL_Event e2; while (SDL_PollEvent(&e2)) if (e2.type == SDL_KEYDOWN || e2.type == SDL_QUIT) skip = 1; draw_splash(SDL_GetTicks() - st); SDL_RenderPresent(R); SDL_Delay(12); }
         SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
     }
-    int help = 0, gsm = 0, gsrow = 0, gsval[3] = {0, 0, 0}, mode = 0, cur = cur0, sel = 0, top = 0, confirm = 0;
+    int help = 0, gsm = 0, gsrow = 0, gsval[4] = {0, 0, 0, 0}, mode = 0, cur = cur0, sel = 0, top = 0, confirm = 0;
     int lastcur = -1, lastsel = -1; Uint32 pvchg = 0; Disp shown; memset(&shown, 0, sizeof shown);   // cached per-game display options for the info panel
-    Uint32 t0 = SDL_GetTicks(); int quit = 0; Uint32 last_in = t0; int idling = 0;
+    Uint32 t0 = SDL_GetTicks(); int quit = 0; Uint32 last_in = t0; int idling = 0; Uint32 warn_t0 = t0; srand((unsigned)time(NULL) ^ (unsigned)getpid());
+    card_check();
     while (!quit) {
         if (autoexit && SDL_GetTicks() - t0 > (Uint32)autoexit * 1000) break;
         static const char *inj; static int injinit, injwait;   // test only: MINOS_KEYS="RRAD..." injects one key per frame (R L U N=down A B C D E F I S=start)
@@ -471,12 +475,13 @@ int main(int argc, char **argv) {
             if (k == SDL_SCANCODE_Q) quit = 1;
             if (help) { if (k == SDL_SCANCODE_A || k == SDL_SCANCODE_B || k == SDL_SCANCODE_1) help = 0; continue; }
             if (gsm) {
-                if (k == SDL_SCANCODE_UP) gsrow = (gsrow + 3) % 4; else if (k == SDL_SCANCODE_DOWN) gsrow = (gsrow + 1) % 4;
-                else if (k == SDL_SCANCODE_RIGHT && gsrow < 3) gsval[gsrow] = (gsval[gsrow] + 1) % 3;
-                else if (k == SDL_SCANCODE_LEFT && gsrow < 3) gsval[gsrow] = (gsval[gsrow] + 2) % 3;
+                if (k == SDL_SCANCODE_UP) gsrow = (gsrow + 4) % 5; else if (k == SDL_SCANCODE_DOWN) gsrow = (gsrow + 1) % 5;
+                else if (k == SDL_SCANCODE_RIGHT && gsrow < 4) { int nn = gsrow == 3 ? 9 : 3; gsval[gsrow] = (gsval[gsrow] + 1) % nn; }
+                else if (k == SDL_SCANCODE_LEFT && gsrow < 4) { int nn = gsrow == 3 ? 9 : 3; gsval[gsrow] = (gsval[gsrow] + nn - 1) % nn; }
                 else if (k == SDL_SCANCODE_A || k == SDL_SCANCODE_B || k == SDL_SCANCODE_I) {
-                    static const char *tv[] = {"", "true", "false"}; gs_set(s->file[sel], tv[gsval[0]], tv[gsval[1]], tv[gsval[2]]); gsm = 0; lastcur = -1;
-                    if (gsrow == 3 && k == SDL_SCANCODE_A) { ed_open(s->file[sel], s->title[sel], (s->fold && s->fold[sel]) ? s->fold[sel] : s->folder); mode = 3; } }
+                    static const char *tv[] = {"", "true", "false"}; char bz[4] = ""; if (gsval[3]) { bz[0] = (char)('0' + gsval[3] - 1); bz[1] = 0; }
+                    gs_set(s->file[sel], tv[gsval[0]], tv[gsval[1]], tv[gsval[2]], bz); gsm = 0; lastcur = -1;
+                    if (gsrow == 4 && k == SDL_SCANCODE_A) { ed_open(s->file[sel], s->title[sel], (s->fold && s->fold[sel]) ? s->fold[sel] : s->folder); mode = 3; } }
                 continue; }
             if (confirm) { if (k == SDL_SCANCODE_A) quit = 1; else if (k == SDL_SCANCODE_B) confirm = 0; continue; }
             if (mode == 0) {
@@ -494,6 +499,13 @@ int main(int argc, char **argv) {
                     Sys *rs = &sys[vi_rec]; recent_push(rs->file[0]); pos_save();
                     if (!launch_ra(rs, 0)) quit = 1;
                     refill_virtual(); t0 = SDL_GetTicks(); SDL_PumpEvents(); SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT); lastcur = -1; preview_free(); }
+                else if (k == SDL_SCANCODE_D) {                                                     // D on the system screen: a random game from the whole library
+                    int tot = 0; for (int q = 0; q < nsys; q++) if (sys[q].lib && sys[q].folder[0] != '_') tot += sys[q].n;
+                    if (tot > 0) { int r = rand() % tot;
+                        for (int q = 0; q < nsys; q++) { Sys *rs = &sys[q]; if (!rs->lib || rs->folder[0] == '_') continue;
+                            if (r < rs->n) { LOG("random game: %s", rs->file[r]); recent_push(rs->file[r]); pos_save(); if (!launch_ra(rs, r)) quit = 1;
+                                refill_virtual(); t0 = SDL_GetTicks(); SDL_PumpEvents(); SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT); lastcur = -1; preview_free(); break; }
+                            r -= rs->n; } } }
                 else if (k == SDL_SCANCODE_B || k == SDL_SCANCODE_1) confirm = 1;
             } else {
                 if (k == SDL_SCANCODE_DOWN && s->n) sel = (sel + 1) % s->n;
@@ -505,7 +517,7 @@ int main(int argc, char **argv) {
                 else if (k == SDL_SCANCODE_1) help = 1;
                 else if (k == SDL_SCANCODE_D && s->n) sel = jump_group(s, sel);
                 else if (k == SDL_SCANCODE_I && s->n) {
-                    GS *g = gs_find(s->file[sel]); gsval[0] = gsval[1] = gsval[2] = 0;
+                    GS *g = gs_find(s->file[sel]); gsval[0] = gsval[1] = gsval[2] = gsval[3] = 0; if (g && g->bezel[0]) gsval[3] = 1 + (g->bezel[0] - '0');
                     if (g) { gsval[0] = !strcmp(g->stretch, "true") ? 1 : !strcmp(g->stretch, "false") ? 2 : 0; gsval[1] = !strcmp(g->smooth, "true") ? 1 : !strcmp(g->smooth, "false") ? 2 : 0; }
                     if (g) gsval[2] = !strcmp(g->resume, "true") ? 1 : !strcmp(g->resume, "false") ? 2 : 0;
                     gsm = 1; gsrow = 0; }
@@ -547,6 +559,7 @@ int main(int argc, char **argv) {
             draw_list(s, sel, topf, &shown, now);
         }
         if (gsm && nshow && mode == 1) draw_gsm(sys[show[cur]].title[sel], gsval, gsrow);
+        if (warn_msg[0] && !snapdir && !inj && mode == 0 && !idling && now - warn_t0 < 12000) { rbox(180, 78, 920, 44, 12, (Col){90, 20, 30, 235}); text_c(warn_msg, 640, 88, 22, C_TXT, 880); }
         if (help) draw_help();
         if (confirm) draw_confirm();
         if (inj && !*inj && ++injwait > 60) {
@@ -567,7 +580,7 @@ int main(int argc, char **argv) {
         SDL_RenderPresent(R); SDL_Delay(8);
     }
     if (nshow) { Sys *s = &sys[show[cur]]; if (s->folder[0] != '_') { if (mode == 1) pos_set(s->folder, sel); snprintf(lastsys, sizeof lastsys, "%s", s->folder); pos_save(); } }
-    LOG("exit");
+    LOG("exit"); clock_save();
     video_down(); SDL_Quit(); if (lg) fclose(lg);
     return 0;
 }

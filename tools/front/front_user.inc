@@ -35,7 +35,7 @@ static void fav_toggle(const char *f) {
 static void recent_push(const char *f) { put_front(recent, &nrecent, MAXREC, f); lines_save("recent.txt", recent, nrecent); plays_inc(f); }
 
 // per-game screen overrides
-typedef struct { char file[120]; char stretch[8], smooth[8], resume[8]; } GS;
+typedef struct { char file[120]; char stretch[8], smooth[8], resume[8]; char bezel[4]; } GS;     // bezel: "" = follow the front setting, "0".."7" = style
 static int idle_sec = 120;   // front.cfg idle=SECONDS (0 = off)
 static int game_vol = 0;   // front.cfg game_vol= : RetroArch gain in dB for every game
 static int resume_def = 1;   // front.cfg: resume=0 turns the automatic resume off
@@ -43,21 +43,22 @@ static GS gsv[2000]; static int ngs;
 static GS *gs_find(const char *f) { for (int i = 0; i < ngs; i++) if (!strcmp(gsv[i].file, f)) return &gsv[i]; return NULL; }
 static void gs_save(void) {
     char t[420]; FILE *f = tmp_open("game_settings.tsv", t, sizeof t); if (!f) return;
-    for (int i = 0; i < ngs; i++) fprintf(f, "%s\t%s\t%s\t%s\n", gsv[i].file, gsv[i].stretch, gsv[i].smooth, gsv[i].resume);
+    for (int i = 0; i < ngs; i++) fprintf(f, "%s\t%s\t%s\t%s\t%s\n", gsv[i].file, gsv[i].stretch, gsv[i].smooth, gsv[i].resume, gsv[i].bezel);
     tmp_done(f, "game_settings.tsv", t);
 }
 static void gs_load(void) {
     char *a[2000]; int n = ld_lines("game_settings.tsv", a, 2000);
     for (int i = 0; i < n; i++) {
-        char *c1 = strchr(a[i], '\t'); if (!c1 || ngs >= 2000) { free(a[i]); continue; } *c1++ = 0; char *c2 = strchr(c1, '\t'); char *c3 = NULL; if (c2) { *c2++ = 0; c3 = strchr(c2, '\t'); if (c3) *c3++ = 0; }
-        GS *g = &gsv[ngs++]; snprintf(g->file, sizeof g->file, "%s", a[i]); g->stretch[0] = g->smooth[0] = g->resume[0] = 0; rs_val(g->stretch, c1); if (c2) rs_val(g->smooth, c2); if (c3) rs_val(g->resume, c3); free(a[i]);
+        char *c1 = strchr(a[i], '\t'); if (!c1 || ngs >= 2000) { free(a[i]); continue; } *c1++ = 0; char *c2 = strchr(c1, '\t'); char *c3 = NULL, *c4 = NULL; if (c2) { *c2++ = 0; c3 = strchr(c2, '\t'); if (c3) { *c3++ = 0; c4 = strchr(c3, '\t'); if (c4) *c4++ = 0; } }
+        GS *g = &gsv[ngs++]; snprintf(g->file, sizeof g->file, "%s", a[i]); g->stretch[0] = g->smooth[0] = g->resume[0] = g->bezel[0] = 0; rs_val(g->stretch, c1); if (c2) rs_val(g->smooth, c2); if (c3) rs_val(g->resume, c3);
+        if (c4 && c4[0] >= '0' && c4[0] <= '7') { g->bezel[0] = c4[0]; g->bezel[1] = 0; } free(a[i]);
     }
 }
-static void gs_set(const char *file, const char *st, const char *sm, const char *rs) {
+static void gs_set(const char *file, const char *st, const char *sm, const char *rs, const char *bz) {
     GS *g = gs_find(file);
-    if (!st[0] && !sm[0] && !rs[0]) { if (g) { *g = gsv[--ngs]; gs_save(); } return; }
+    if (!st[0] && !sm[0] && !rs[0] && !bz[0]) { if (g) { *g = gsv[--ngs]; gs_save(); } return; }
     if (!g) { if (ngs >= 2000) return; g = &gsv[ngs++]; snprintf(g->file, sizeof g->file, "%s", file); }
-    snprintf(g->stretch, 8, "%s", st); snprintf(g->smooth, 8, "%s", sm); snprintf(g->resume, 8, "%s", rs); gs_save();
+    snprintf(g->stretch, 8, "%s", st); snprintf(g->smooth, 8, "%s", sm); snprintf(g->resume, 8, "%s", rs); snprintf(g->bezel, 4, "%s", bz); gs_save();
 }
 static void apply_gs(const char *file, Disp *d) { GS *g = gs_find(file); if (!g) return; if (g->stretch[0]) snprintf(d->stretch, 8, "%s", g->stretch); if (g->smooth[0]) snprintf(d->smooth, 8, "%s", g->smooth); }
 
